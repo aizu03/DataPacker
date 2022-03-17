@@ -9,12 +9,24 @@ Types of Writers/Readers
 
 # Usage
 
+All entries must be primitives. 
+If you want to add an object use the:
+
+```C#
+CompactFormatter
+```
+
 ## Default SequenceWriter/SequenceReader
 
 Structure: Sequential
 
 ```C#
-using var sw = new SequenceWriter();
+using var ms = new MemoryStream(); // any type of data stream
+using var writer = new SequenceWriter(ms, DataStructure.Sequential);
+writer.Add("Hello World!");
+writer.Add(123);
+writer.Add(3.14159265358979323824);
+writer.Write();
 ```
 
 ## Contributing
