@@ -138,7 +138,13 @@ var bytes = reader["Data"];
 var data = CompactFormatter.Deserialize<SomeClass>(bytes);
 ```
 
+## TODO
 
+* ~~Custom string encoding~~
+* ~~Indexed sequence~~
+* ~~Read ranges~~
+* ~~Simple serializer~~
+* Compressed serializer
 
 
 ## Contributing
