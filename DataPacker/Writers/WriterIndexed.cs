@@ -44,8 +44,6 @@ namespace DataPacker.Writers
                 // ...
             }
 
-            // Write objects in a sequence to the pack
-            using var pack = new MemoryStream();
             if (named)
             {
                 foreach (var pair in objectsNamed)
@@ -54,24 +52,24 @@ namespace DataPacker.Writers
                     var obj = pair.Value;
 
                     // Write name and data
-                    pack.Write(BitConverter.GetBytes(name.Length));
-                    pack.Write(name);
-                    pack.Write(obj);
+                    stream.Write(BitConverter.GetBytes(name.Length));
+                    stream.Write(name);
+                    stream.Write(obj);
 
                     // Store end position of each entry
                     // -> ends at 10, 42, 60, 90 .. etc.
-                    offsets.Add((int)(origin + pack.Position));
+                    offsets.Add((int)(origin + stream.Position));
                 }
 
             } else
             {
                 foreach (var obj in objects)
                 {
-                    pack.Write(obj);
+                    stream.Write(obj);
 
                     // Store end position of each entry
                     // -> ends at 10, 42, 60, 90 .. etc.
-                    offsets.Add((int)(origin + pack.Position));
+                    offsets.Add((int)(origin + stream.Position));
                 }
             }
 
@@ -80,7 +78,6 @@ namespace DataPacker.Writers
             foreach (var offset in offsets)  
                 book.Write(BitConverter.GetBytes(offset));
 
-            stream.Write(pack.ToArray());
             stream.Write(book.ToArray());
 
             // Write the book length

@@ -18,9 +18,6 @@ namespace DataPacker.Writers
 
         public override void Write(bool closeStream)
         {
-            // Write objects in a sequence to the pack
-            using var pack = new MemoryStream();
-
             if (named)
             {
                 foreach(var pair in objectsNamed)
@@ -29,12 +26,12 @@ namespace DataPacker.Writers
                     var obj = pair.Value;
 
                     // Write length and the name bytes
-                    pack.Write(BitConverter.GetBytes(name.Length));
-                    pack.Write(name);
+                    stream.Write(BitConverter.GetBytes(name.Length));
+                    stream.Write(name);
 
                     // Write length and the object bytes
-                    pack.Write(BitConverter.GetBytes(obj.Length));
-                    pack.Write(obj);
+                    stream.Write(BitConverter.GetBytes(obj.Length));
+                    stream.Write(obj);
                 }
 
             } else
@@ -42,12 +39,11 @@ namespace DataPacker.Writers
                 foreach (var obj in objects)
                 {
                     // Write length and the object bytes
-                    pack.Write(BitConverter.GetBytes(obj.Length));
-                    pack.Write(obj);
+                    stream.Write(BitConverter.GetBytes(obj.Length));
+                    stream.Write(obj);
                 }
             }
 
-            stream.Write(pack.ToArray());
             if (closeStream) stream.Close();
         }
     }
