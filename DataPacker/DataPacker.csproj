@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <BaseOutputPath>D:\My Final Apps</BaseOutputPath>
+	<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="BaseReader.cs~RF4e490fb.TMP" />
+    <None Remove="BookEntry.cs~RF525aa63.TMP" />
+    <None Remove="BookEntry.cs~RF563fdd5.TMP" />
+    <None Remove="IBaseReader.cs~RFa2f4e08.TMP" />
+    <None Remove="Readers\IBaseReader.cs~RF1ccf186.TMP" />
+    <None Remove="Readers\IBaseReader.cs~RF9c50d97.TMP" />
+    <None Remove="SequenceType.cs~RFa071806.TMP" />
+    <None Remove="Serialization\ClassFormatter.cs~RFa44d429.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+</Project>
