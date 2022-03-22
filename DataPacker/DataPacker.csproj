@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -6,6 +6,10 @@
     <BaseOutputPath>D:\My Final Apps</BaseOutputPath>
 	<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Authors>aizu03</Authors>
+	<PackageProjectUrl></PackageProjectUrl>
+	<RepositoryUrl>https://github.com/aizu03/DataPacker</RepositoryUrl>
+	<PackageTags>data packing library net-core serialization</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
