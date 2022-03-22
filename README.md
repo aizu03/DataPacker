@@ -9,14 +9,7 @@ Types of Writers/Readers
 * Sequential
 * Indexed
 
-Supported entries: All primitives/string/byte[]. 
-If you want to add an object use the:
-
-```C#
-CompactFormatter
-```
-
-to serialize it first.
+Supported entries: All primitives, string, byte[]
 
 ## Default SequenceWriter/SequenceReader
 
@@ -107,6 +100,8 @@ named:
 ```
 ## Using the CompactFormatter
 
+If you want to serialize an object:
+
 ```C#
 var list = new List<string>(); // some object
 list.Add("Hello");
@@ -144,7 +139,7 @@ var data = CompactFormatter.Deserialize<SomeClass>(bytes);
 * ~~Indexed sequence~~
 * ~~Read ranges~~
 * ~~Simple serializer~~
-* Compressed serializer
+* Compressed formatter
 
 
 ## Contributing
