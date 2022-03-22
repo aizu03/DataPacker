@@ -73,7 +73,7 @@ var helloWorld = reader.Entries[0].ToString();
 ```
 Ranges:
 ```C#
-reader.ReadOne(51, 69);
+reader.Read(51, 69);
 ```
 
 Append data to an existing sequence:
