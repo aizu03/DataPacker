@@ -111,9 +111,19 @@ namespace DataPacker.Serialization
                 {
                     // .. just save the index
                     // [2, index]
-                    var bytes = new byte[2];
+                    var bytes = new byte[5];
                     bytes[0] = 2;
-                    bytes[1] = (byte)index;
+
+                    unsafe
+                    {
+                        var i = (int)index;
+                        var pi = (byte*)&i;
+                        bytes[1] = pi[0];
+                        bytes[2] = pi[1];
+                        bytes[3] = pi[2];
+                        bytes[4] = pi[3];
+                    }
+
                     writer.Add(bytes);
                     continue;
                 }
@@ -273,7 +283,7 @@ namespace DataPacker.Serialization
                 if (bytes[0] == 2)
                 {
                     // Get object by index
-                    var target = UninitializedObjects[bytes[1]];
+                    var target = UninitializedObjects[BitConverter.ToInt32(bytes, 1)];
                     field.SetValue(clazz, target);
                     continue;
                 }
@@ -359,7 +369,6 @@ namespace DataPacker.Serialization
         }
 
         #endregion
-
 
         // not good. object gets moved by clr in memory causes multiple serializations of an object
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
