@@ -18,7 +18,7 @@ namespace DataPacker.Serialization
         private static readonly Encoding UrlEncoding = Encoding.ASCII;
         private static readonly Encoding StringEncoding = Encoding.Unicode;
 
-        private static readonly Dictionary<int, int?> ObjectGraph = new(); // id of object, index of object
+        private static readonly Dictionary<object, int?> ObjectGraph = new(); // id of object, index of object
         private static readonly List<object> UninitializedObjects = new();
 
         // TODO: For future
@@ -62,10 +62,12 @@ namespace DataPacker.Serialization
         private static byte[] ClassToBytes(object clazz)
         {
             // Save current index of object
-            var id = GetObjectId(clazz);
-            ObjectGraph[id] = ObjectGraph.Count;
+            // instead of using memory address of object, use the hash code.
+            // https://stackoverflow.com/a/751146
+            // Currently no checks for hash collision that's up to the user
+            ObjectGraph[clazz] = ObjectGraph.Count;
 
-           // Debug.WriteLine($"Serialize.. {clazz.GetType().Name} {id:X}");
+            // Debug.WriteLine($"Serialize.. {clazz.GetType().Name} {id:X}");
 
             using var ms = new MemoryStream();
             using var writer = new WriterSequential(ms, false);
@@ -104,7 +106,7 @@ namespace DataPacker.Serialization
                 }
 
                 // Add reference by checking if the field value is a class currently serializing
-                ObjectGraph.TryGetValue(GetObjectId(fieldValue), out var index);
+                ObjectGraph.TryGetValue(fieldValue, out var index);
                 if (index != null)
                 {
                     // .. just save the index
@@ -358,9 +360,6 @@ namespace DataPacker.Serialization
 
         #endregion
 
-        // instead of using memory address of object, use the hash code.
-        // https://stackoverflow.com/a/751146
-        private static int GetObjectId(object obj) => obj.GetHashCode();
 
         // not good. object gets moved by clr in memory causes multiple serializations of an object
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -370,7 +369,7 @@ namespace DataPacker.Serialization
             //var b = **(IntPtr**)&a;
 
             var clazzPtr = IntPtr.Zero;
-            ReferenceHelpers.GetPinnedPtr(clazz, ptr => clazzPtr = ptr); // not pinning .__.
+            // https://stackoverflow.com/a/10861731 not pinning .__.
             return clazzPtr;
         }
 
@@ -384,29 +383,6 @@ namespace DataPacker.Serialization
                 if (type != null) return type;
             }
             throw new ArgumentException($"Can't find class {url}");
-        }
-    }
-
-    /// <summary>
-    /// https://stackoverflow.com/a/10861731 :p
-    /// </summary>
-    internal static class ReferenceHelpers
-    {
-        public static readonly Action<object, Action<IntPtr>> GetPinnedPtr;
-
-        static ReferenceHelpers()
-        {
-            var dyn = new DynamicMethod("GetPinnedPtr", typeof(void), new[] { typeof(object), typeof(Action<IntPtr>) }, typeof(ReferenceHelpers).Module);
-            var il = dyn.GetILGenerator();
-            il.DeclareLocal(typeof(object), true);
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Stloc_0);
-            il.Emit(OpCodes.Ldarg_1);
-            il.Emit(OpCodes.Ldloc_0);
-            il.Emit(OpCodes.Conv_I);
-            il.Emit(OpCodes.Call, typeof(Action<IntPtr>).GetMethod("Invoke"));
-            il.Emit(OpCodes.Ret);
-            GetPinnedPtr = (Action<object, Action<IntPtr>>)dyn.CreateDelegate(typeof(Action<object, Action<IntPtr>>));
         }
     }
 }
