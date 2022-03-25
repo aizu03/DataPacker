@@ -18,8 +18,8 @@ namespace DataPacker.Serialization
         private static readonly Encoding UrlEncoding = Encoding.ASCII;
         private static readonly Encoding StringEncoding = Encoding.Unicode;
 
-        private static readonly Dictionary<object, int?> ObjectGraph = new(); // id of object, index of object
-        private static readonly List<object> UninitializedObjects = new();
+        private static readonly Dictionary<object, int?> ObjectIndexes = new(); // id of object, index of object
+        private static readonly List<object> Objects = new();
 
         // TODO: For future
         /*
@@ -36,7 +36,7 @@ namespace DataPacker.Serialization
         {
             if (clazz == null) throw new ArgumentException("Object is null!");
             var bytes = ClassToBytes(clazz);
-            ObjectGraph.Clear();
+            ObjectIndexes.Clear();
             return bytes;
         }
 
@@ -65,7 +65,8 @@ namespace DataPacker.Serialization
             // instead of using memory address of object, use the hash code.
             // https://stackoverflow.com/a/751146
             // Currently no checks for hash collision that's up to the user
-            ObjectGraph[clazz] = ObjectGraph.Count;
+            if (!ObjectIndexes.ContainsKey(clazz))
+                ObjectIndexes[clazz] = ObjectIndexes.Count;
 
             // Debug.WriteLine($"Serialize.. {clazz.GetType().Name} {id:X}");
 
@@ -106,7 +107,7 @@ namespace DataPacker.Serialization
                 }
 
                 // Add reference by checking if the field value is a class currently serializing
-                ObjectGraph.TryGetValue(fieldValue, out var index);
+                ObjectIndexes.TryGetValue(fieldValue, out var index);
                 if (index != null)
                 {
                     // .. just save the index
@@ -228,10 +229,8 @@ namespace DataPacker.Serialization
 
         public static T Deserialize<T>(byte[] bytes)
         {
-            // Create empty class
-            var clazz = (object)(T)FormatterServices.GetUninitializedObject(typeof(T));
-            var url = clazz.GetType().FullName;
-            UninitializedObjects.Clear();
+            Objects.Clear();
+            var url = typeof(T).FullName;
             return (T)ClassFromBytes(ref url, ref bytes);
         }
 
@@ -242,7 +241,7 @@ namespace DataPacker.Serialization
             var clazz = FormatterServices.GetUninitializedObject(classType);
             var fields = classType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            UninitializedObjects.Add(clazz);
+            Objects.Add(clazz);
 
             // Empty class
             if (classBytes.Length == 0) return clazz;
@@ -283,7 +282,7 @@ namespace DataPacker.Serialization
                 if (bytes[0] == 2)
                 {
                     // Get object by index
-                    var target = UninitializedObjects[BitConverter.ToInt32(bytes, 1)];
+                    var target = Objects[BitConverter.ToInt32(bytes, 1)];
                     field.SetValue(clazz, target);
                     continue;
                 }
@@ -382,9 +381,10 @@ namespace DataPacker.Serialization
             return clazzPtr;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Type GetType2(string url)
         {
-            var type = Type.GetType(url);
+            var type = Type.GetType(url); // very slow in performance testing
             if (type != null) return type;
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
