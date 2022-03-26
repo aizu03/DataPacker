@@ -19,7 +19,7 @@ using var writer = new SequenceWriter(ms);
 writer.Add("Hello World!");
 writer.Add(123);
 writer.Add(3.141);
-writer.Write();
+writer.Flush();
 var arr = ms.ToArray(); // if you want the bytes
 ```
 
@@ -58,7 +58,7 @@ using var writer = new SequenceWriter(ms, DataStructure.Indexed);
 writer.Add("Junk");
 writer.Add("Hello World!");
 writer.Add(111);
-writer.Write();
+writer.Flush();
 ```
 
 You can choose what to read:
@@ -83,7 +83,7 @@ using var writer = new SequenceWriter(ms, DataStructure.Indexed, appendReader: r
 writer.Add("New Data 1!");
 writer.Add("New Data 2!");
 writer.Add("New Data 3!");
-writer.Write();
+writer.Flush();
 ```
 
 The indexed structure looks like this:
@@ -114,7 +114,7 @@ using var writer = new SequenceWriter(ms, DataStructure.SequentialNamed);
 writer.Add("Name", "Alice");
 writer.Add("Age", 22);
 writer.Add("Data", CompactFormatter.Serialize(some object));
-writer.Write();
+writer.Flush();
 ```
 
 Get the object:
