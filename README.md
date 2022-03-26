@@ -119,8 +119,7 @@ writer.Flush();
 
 Get the object:
 ```C#
-using var reader = new SequenceReader(ms, DataStructure.SequentialNamed);
-reader.Read();
+using var reader = new SequenceReader(ms, DataStructure.SequentialNamed, autoRead: true);
 var bytes = reader["Data"];
 var data = CompactFormatter.Deserialize<SomeClass>(bytes);
 ```
