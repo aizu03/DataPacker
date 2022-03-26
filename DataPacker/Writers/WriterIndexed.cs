@@ -26,22 +26,17 @@ namespace DataPacker.Writers
             GC.SuppressFinalize(this);
         }
 
-        public override void Write(bool closeStream)
+        public override void Flush(bool closeStream)
         {
-            var origin = 0L;
             var offsets = new List<int>();
-
-            // If append data, get the previous book offsets
-            // and set stream position to the end of the existing data
             if (appendReader != null)
             {
-                foreach (var entry in appendReader.bookEntries) offsets.Add(entry.end);
+                // Create book from previous offsets
+                foreach (var entry in appendReader.bookEntries) 
+                    offsets.Add(entry.end);
+
+                // Go to end of last entry
                 stream.Seek(-sizeof(long) - appendReader.bookLength, SeekOrigin.End);
-
-                origin = stream.Position;
-
-                // After that write all the data normally, write book etc.
-                // ...
             }
 
             if (named)
@@ -56,9 +51,8 @@ namespace DataPacker.Writers
                     stream.Write(name);
                     stream.Write(obj);
 
-                    // Store end position of each entry
-                    // -> ends at 10, 42, 60, 90 .. etc.
-                    offsets.Add((int)(origin + stream.Position));
+                    // Store offset from each entry in the book: 0, 19, 48, 90 etc.
+                    offsets.Add((int)stream.Position);
                 }
 
             } else
@@ -69,20 +63,19 @@ namespace DataPacker.Writers
 
                     // Store end position of each entry
                     // -> ends at 10, 42, 60, 90 .. etc.
-                    offsets.Add((int)(origin + stream.Position));
+                    offsets.Add((int)stream.Position);
                 }
             }
 
             // Write the book
-            using var book = new MemoryStream();
-            foreach (var offset in offsets)  
-                book.Write(BitConverter.GetBytes(offset));
-
-            stream.Write(book.ToArray());
+            var bookBytesTotal = offsets.Count * sizeof(int);
+            foreach (var offset in offsets)
+                stream.Write(BitConverter.GetBytes(offset));
 
             // Write the book length
-            stream.Write(Generate(book.Position, null));
+            stream.Write(BitConverter.GetBytes((long)bookBytesTotal));
 
+            Clear();
             if (closeStream) stream.Close();
         }
     }

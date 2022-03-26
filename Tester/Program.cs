@@ -33,9 +33,13 @@ public class Tester
         Console.WriteLine("Test References passed!\n");
 
         TestIndexed();
-        Console.WriteLine("Test Indexed1 passed!\n");
+        Console.WriteLine("Test Indexed passed!\n");
+
         TestIndexedAdvanced();
-        Console.WriteLine("Test Indexed2 passed!\n");
+        Console.WriteLine("Test Indexed Advanced passed!\n");
+
+        TestIndexedAdvanced2();
+        Console.WriteLine("Test Indexed Advanced Named passed!\n");
 
         Console.WriteLine("\nAll tests passed!");
     }
@@ -54,7 +58,7 @@ public class Tester
         writer.Add(CompactFormatter.Serialize(pointers));
         writer.Add(pi);
         writer.Add(info);
-        writer.Write(false);
+        writer.Flush(false);
 
         ms.Position = 0;
 
@@ -98,7 +102,7 @@ public class Tester
             writer.Add(before);
         }
 
-        writer.Write(false);
+        writer.Flush(false);
         writer.Dispose();
 
         ms.Position = 0;
@@ -165,7 +169,7 @@ public class Tester
         writer.Add('\n');
         writer.Add("End");
 
-        writer.Write(false);
+        writer.Flush(false);
         ms.Position = 0;
 
         using var reader = new SequenceReader(ms, DataStructure.Indexed, Encoding.Unicode);
@@ -197,34 +201,65 @@ public class Tester
         using var ms = new MemoryStream();
         using var writer = new SequenceWriter(ms, DataStructure.IndexedNamed, Encoding.ASCII);
 
-        writer.Add("e1", "Hello World!");
-        writer.Add("e2", 33);
-        writer.Add("e3", 42);
-        writer.Add("e4", "Alice?");
+        writer.Add("One", "Hello World!");
+        writer.Add("Two", int.MaxValue);
+        writer.Add("Three", 42);
+        writer.Add("Four", "Alice?");
 
-        writer.Write(false);
+        writer.Flush(false);
         ms.Position = 0;
 
         using var reader = new SequenceReader(ms, DataStructure.IndexedNamed, Encoding.ASCII);
         Console.WriteLine($"{reader.Available()} entries are available to read!");
         reader.Read(1, 2, false);
 
-        if (reader["e2"].ToInt32() != 33 || reader["e3"].ToInt32() != 42) throw new Exception();
+        if (reader["Two"].ToInt32() != int.MaxValue || reader["Three"].ToInt32() != 42) throw new Exception();
 
         ms.Position = 0;
 
         // Append new data
         using var writerAppend = new SequenceWriter(ms, DataStructure.IndexedNamed, Encoding.ASCII, reader);
 
-        writer.Add("e5", 69);
-        writer.Add("e6", '\n');
-        writer.Add("e7", "End");
+        writerAppend.Add("e5", 69);
+        writerAppend.Add("e6", '\n');
+        writerAppend.Add("e7", "End");
 
-        writer.Write(false);
+        writerAppend.Flush(false);
 
         ms.Position = 0;
-        using var reader2 = new SequenceReader(ms, DataStructure.IndexedNamed, Encoding.ASCII, true);
+        using var reader2 = new SequenceReader(ms, DataStructure.IndexedNamed, Encoding.ASCII);
+        var av = reader2.Available();
+        reader2.Read();
+
         if (reader2["e6"].ToChar() != '\n' || reader2["e5"].ToInt32() != 69) throw new Exception();
 
     }
+    private static void TestIndexedAdvanced2()
+    {
+        using var ms = new MemoryStream();
+        using var writer = new SequenceWriter(ms, DataStructure.Indexed);
+       
+        writer.Add("Hello World!");
+        writer.Add(int.MaxValue);
+        writer.Add((ushort)12);
+        writer.Add(double.MinValue);
+
+        writer.Flush(false);
+        ms.Position = 0;
+
+        using var bookReader = new SequenceReader(ms, DataStructure.Indexed);
+        Console.WriteLine($"Previously available {bookReader.Available()}");
+
+        using var apWriter = new SequenceWriter(ms, DataStructure.Indexed, appendReader: bookReader);
+        apWriter.Add("New Data!");
+        apWriter.Add(long.MaxValue);
+        apWriter.Add("Passed!");
+
+        apWriter.Flush(false);
+
+        ms.Position = 0;
+        using var verifyReader = new SequenceReader(ms, DataStructure.Indexed, autoRead:true);
+        if (verifyReader[4].ToString() != "New Data!" || verifyReader[6].ToString() != "Passed!") throw new Exception();
+    }
+
 }

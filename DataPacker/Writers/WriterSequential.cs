@@ -16,7 +16,7 @@ namespace DataPacker.Writers
             GC.SuppressFinalize(this);
         }
 
-        public override void Write(bool closeStream)
+        public override void Flush(bool closeStream)
         {
             if (named)
             {
@@ -44,6 +44,7 @@ namespace DataPacker.Writers
                 }
             }
 
+            Clear();
             if (closeStream) stream.Close();
         }
     }

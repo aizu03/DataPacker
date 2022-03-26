@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace DataPacker.Readers
@@ -26,13 +27,5 @@ namespace DataPacker.Readers
 
         public int ReadEntries() => Entries.Count;
         public abstract void Read(bool closeStream);
-
-        protected byte[] GetStreamBytes()
-        {
-            // Read all bytes
-            using var memoryStream = new MemoryStream();
-            stream.CopyTo(memoryStream);
-            return memoryStream.ToArray();
-        }
     }
 }

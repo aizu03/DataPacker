@@ -9,6 +9,7 @@ namespace DataPacker.Writers
         void Add(string name, byte[] data);
         void Add(string name, object data);
         int Size();
-        void Write(bool closeStream);
+        void Flush(bool closeStream);
+        void Clear();
     }
 }

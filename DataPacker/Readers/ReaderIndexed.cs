@@ -76,31 +76,34 @@ namespace DataPacker.Readers
             for (var i = start; i <= stop; i++)
             {
                 var info = bookEntries[i];
-                var length = info.end - info.begin;
-                var bytes = new byte[length];
-                stream.Read(bytes, 0, length);
+                var totalLength = info.end - info.begin;
 
-                if (named)
+                if (named) // length = name len + name + data
                 {
                     // Read name first
-                    var offset = 0;
-                    var nameLen = BitConverter.ToInt32(bytes, offset);
-                    offset += sizeof(int);
-                    var name = encoding.GetString(bytes, offset, nameLen);
-                    offset += nameLen;
+                    var nameLenBytes = new byte[sizeof(int)];
+                    stream.Read(nameLenBytes, 0, sizeof(int));
+                    var nameLen = BitConverter.ToInt32(nameLenBytes);
+                    var nameBytes = new byte[nameLen];
+                    stream.Read(nameBytes, 0, nameLen);
+                    var name = encoding.GetString(nameBytes);
 
                     // Read data
-                    var dataLen = length - offset;
+                    var bytesRead = nameLen + sizeof(int);
+                    var dataLen = totalLength - bytesRead;
                     var data = new byte[dataLen];
-                    Buffer.BlockCopy(bytes, offset, data, 0, dataLen);
-
-                    var entry = new Entry(data, length, encoding, name);
+                    stream.Read(data, 0, dataLen);
+                    var entry = new Entry(data, totalLength, encoding, name);
 
                     Entries.Add(entry);
                     NamedEntries[name] = entry;
                 }
-                else
-                    Entries.Add(new Entry(bytes, length, encoding));
+                else // length = data
+                {
+                    var bytes = new byte[totalLength];
+                    stream.Read(bytes, 0, totalLength);
+                    Entries.Add(new Entry(bytes, totalLength, encoding));
+                }
             }
 
             if (close) stream.Close();

@@ -38,6 +38,7 @@ namespace DataPacker
         public void Add(object data) => writer.Add(data);
         public void Add(string name, byte[] data) => writer.Add(name, data);
         public void Add(string name, object data) => writer.Add(name, data);
-        public void Write(bool closeStream = true) => writer.Write(closeStream);
+        public void Flush(bool closeStream = true) => writer.Flush(closeStream);
+        public void Clear() => writer.Clear();
     }
 }

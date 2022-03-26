@@ -21,6 +21,8 @@ namespace DataPacker.Serialization
         private static readonly Dictionary<object, int?> ObjectIndexes = new(); // id of object, index of object
         private static readonly List<object> Objects = new();
 
+        private static readonly Dictionary<string, Type> TypeTable = new();
+
         // TODO: For future
         /*
         Store path names in a dictionary and use index instead of URL
@@ -143,13 +145,13 @@ namespace DataPacker.Serialization
                 using var writerUrlClass = new WriterSequential(stream, false);
                 writerUrlClass.Add(urlBytes);
                 writerUrlClass.Add(classBytes);
-                writerUrlClass.Write(true);
+                writerUrlClass.Flush(true);
                 // byte[1, URL, bytes]
 
                 writer.Add(stream.ToArray());
             }
 
-            writer.Write(true);
+            writer.Flush(true);
             return ms.ToArray();
         }
 
@@ -214,11 +216,11 @@ namespace DataPacker.Serialization
             }
 
             // Write the sequence of (1, data, 1, data, 0, 0, 1, data, 0, 0, 0, 0...]
-            isNullBytesWriter.Write(true);
+            isNullBytesWriter.Flush(true);
 
             // Write the sequence [URL, sequence[is null, data]]
             urlSequenceWriter.Add(ms2.ToArray());
-            urlSequenceWriter.Write(true);
+            urlSequenceWriter.Flush(true);
 
             return ms1.ToArray();
         }
@@ -369,29 +371,31 @@ namespace DataPacker.Serialization
 
         #endregion
 
-        // not good. object gets moved by clr in memory causes multiple serializations of an object
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static IntPtr GetObjectId2(object clazz)
-        {
-            //var a = __makeref(clazz);
-            //var b = **(IntPtr**)&a;
-
-            var clazzPtr = IntPtr.Zero;
-            // https://stackoverflow.com/a/10861731 not pinning .__.
-            return clazzPtr;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Type GetType2(string url)
         {
-            var type = Type.GetType(url); // very slow in performance testing
+            TypeTable.TryGetValue(url, out var type);
             if (type != null) return type;
+            type = Type.GetType(url); // very slow in performance testing. lookup table 3x faster
+            if (type != null)
+            {
+                TypeTable[url] = type;
+                return type;
+            }
+
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 type = assembly.GetType(url);
-                if (type != null) return type;
+                if (type != null)
+                {
+                    TypeTable[url] = type;
+                    return type;
+                }
             }
             throw new ArgumentException($"Can't find class {url}");
         }
+
+        // Hot Spots:
+        // GetType(), GetStreamBytes(), Cast2()
     }
 }

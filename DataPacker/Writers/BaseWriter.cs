@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using static DataPacker.ByteHelper;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 
 namespace DataPacker.Writers
 {
@@ -58,7 +60,15 @@ namespace DataPacker.Writers
             return bytes;
         }
 
-        public abstract void Write(bool closeStream);
+        public abstract void Flush(bool closeStream);
+        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear()
+        {
+            objects.Clear();
+            objectsNamed.Clear();
+        }
 
         public virtual void Dispose() { throw new NotImplementedException(); }
     }

@@ -17,10 +17,8 @@ namespace DataPacker.Readers
 
         public override void Read(bool closeStream)
         {
-            var bytes = GetStreamBytes();
-            var length = bytes.Length;
-            var offset = 0;
-
+            var length = stream.Length;
+     
             do
             {
                 string? name = null;
@@ -28,31 +26,25 @@ namespace DataPacker.Readers
                 if (named)
                 {
                     // Read name
-                    var nameLength = BitConverter.ToInt32(bytes, offset);
-                    offset += sizeof(int);
+                    var lenBytesName = new byte[sizeof(int)];
+                    stream.Read(lenBytesName, 0, sizeof(int));
+                    var nameLength = BitConverter.ToInt32(lenBytesName);
                     var nameBytes = new byte[nameLength];
-                    Buffer.BlockCopy(bytes, offset, nameBytes, 0, nameLength);
+                    stream.Read(nameBytes, 0, nameLength);
                     name = encoding.GetString(nameBytes);
-
-                    // Jump to data
-                    offset += nameLength;
                 }
 
                 // Read data
-                var dataLength = BitConverter.ToInt32(bytes, offset);
-                offset += sizeof(int);
+                var lenBytes = new byte[sizeof(int)];
+                stream.Read(lenBytes, 0, sizeof(int));
+                var dataLength = BitConverter.ToInt32(lenBytes);
                 var data = new byte[dataLength];
-                Buffer.BlockCopy(bytes, offset, data, 0, dataLength);
+                stream.Read(data, 0, dataLength);
                 var entry = new Entry(data, dataLength, encoding, name);
-          
                 if (name != null) NamedEntries[name] = entry;
                 Entries.Add(entry);
 
-                // Jump to next
-                offset += dataLength;
-
-            } while (offset < length);
-
+            } while (stream.Position < length);
 
             if (closeStream) stream.Close();
         }
