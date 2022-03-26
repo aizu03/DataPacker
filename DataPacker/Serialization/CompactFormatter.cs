@@ -394,8 +394,5 @@ namespace DataPacker.Serialization
             }
             throw new ArgumentException($"Can't find class {url}");
         }
-
-        // Hot Spots:
-        // GetType(), GetStreamBytes(), Cast2()
     }
 }

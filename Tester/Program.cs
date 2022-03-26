@@ -42,6 +42,9 @@ public class Tester
         Console.WriteLine("Test Indexed Advanced Named passed!\n");
 
         Console.WriteLine("\nAll tests passed!");
+
+        // CompactFormatter
+        // 1 complex class of 300 objects, average deserialization time: 1ms
     }
 
     private static void TestSimpleClasses()
