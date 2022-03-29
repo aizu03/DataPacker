@@ -6,9 +6,9 @@ using System.Diagnostics;
 using System.IO;
 using DataPacker.Serialization;
 using System.Numerics;
-using Tester.Path;
 using DataPacker;
 using System.Text;
+using Tester.Testing;
 using static System.String;
 
 namespace Tester;
@@ -20,26 +20,29 @@ public class Tester
         Console.WriteLine("Begin tests...\n");
 
         TestSimpleClasses();
-        Console.WriteLine("Test Simple Classes passed!\n");
+        Console.WriteLine("Test Simple Classes passed!");
 
         TestSimpleList(false);
         TestSimpleList(true);
-        Console.WriteLine("Test Simple List passed!\n");
+        Console.WriteLine("Test Simple List passed!");
 
         TestArrays();
-        Console.WriteLine("Test Arrays passed!\n");
+        Console.WriteLine("Test Arrays passed!");
 
         TestSelfReference();
-        Console.WriteLine("Test References passed!\n");
+        Console.WriteLine("Test References passed!");
 
         TestIndexed();
-        Console.WriteLine("Test Indexed passed!\n");
+        Console.WriteLine("Test Indexed passed!");
 
         TestIndexedAdvanced();
-        Console.WriteLine("Test Indexed Advanced passed!\n");
+        Console.WriteLine("Test Indexed Advanced passed!");
 
         TestIndexedAdvanced2();
-        Console.WriteLine("Test Indexed Advanced Named passed!\n");
+        Console.WriteLine("Test Indexed Advanced Named passed!");    
+        
+        TestMassiveList();
+        Console.WriteLine("Test Massive List passed!");
 
         Console.WriteLine("\nAll tests passed!");
 
@@ -177,8 +180,6 @@ public class Tester
 
         using var reader = new SequenceReader(ms, DataStructure.Indexed, Encoding.Unicode);
 
-        Console.WriteLine($"{reader.Available()} entries are available to read!");
-
         // Read range
         reader.Read(2, 5, false);
 
@@ -213,7 +214,6 @@ public class Tester
         ms.Position = 0;
 
         using var reader = new SequenceReader(ms, DataStructure.IndexedNamed, Encoding.ASCII);
-        Console.WriteLine($"{reader.Available()} entries are available to read!");
         reader.Read(1, 2, false);
 
         if (reader["Two"].ToInt32() != int.MaxValue || reader["Three"].ToInt32() != 42) throw new Exception();
@@ -237,6 +237,7 @@ public class Tester
         if (reader2["e6"].ToChar() != '\n' || reader2["e5"].ToInt32() != 69) throw new Exception();
 
     }
+   
     private static void TestIndexedAdvanced2()
     {
         using var ms = new MemoryStream();
@@ -251,8 +252,6 @@ public class Tester
         ms.Position = 0;
 
         using var bookReader = new SequenceReader(ms, DataStructure.Indexed);
-        Console.WriteLine($"Previously available {bookReader.Available()}");
-
         using var apWriter = new SequenceWriter(ms, DataStructure.Indexed, appendReader: bookReader);
         apWriter.Add("New Data!");
         apWriter.Add(long.MaxValue);
@@ -264,5 +263,39 @@ public class Tester
         using var verifyReader = new SequenceReader(ms, DataStructure.Indexed, autoRead:true);
         if (verifyReader[4].ToString() != "New Data!" || verifyReader[6].ToString() != "Passed!") throw new Exception();
     }
+
+    private static void TestMassiveList()
+    {
+        var rnd = new Random();
+        var strings = new List<StringObject>();
+        const int size = 100000;
+        const string set = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var len = set.Length;
+
+        for (var i = 0; i < size; i++)
+        {
+            var sb = new StringBuilder();
+            for (var j= 0; j < 3; j++) // do collision testing
+                sb.Append(set[rnd.Next(len)]);
+
+            var str = sb.ToString();
+            strings.Add(new StringObject(str));
+        }
+
+        using var formatter = new BasicFormatter();
+        var sw = Stopwatch.StartNew();
+        var bytes = formatter.Serialize(strings); // ~ 150 ms for 100k item per object
+        var ms = sw.ElapsedMilliseconds;
+
+        Console.WriteLine($"Time {ms} ms");
+        strings.Clear();
+
+        sw.Restart();
+        var u2 = formatter.Deserialize<List<StringObject>>(bytes);
+        ms = sw.ElapsedMilliseconds;
+        Console.WriteLine($"Time {ms} ms");
+        if (u2.Count != size) throw new Exception();
+    }
+
 
 }

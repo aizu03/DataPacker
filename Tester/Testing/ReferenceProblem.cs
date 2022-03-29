@@ -1,4 +1,4 @@
-﻿namespace Tester.Path
+﻿namespace Tester.Testing
 {
     internal class ReferenceProblem
     {

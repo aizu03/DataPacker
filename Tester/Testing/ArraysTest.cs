@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Tester.Path
+namespace Tester.Testing
 {
     public class ArraysTest
     {

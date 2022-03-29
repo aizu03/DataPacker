@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using static DataPacker.ByteHelper;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 
 namespace DataPacker.Writers

@@ -15,8 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Path\TestClass.cs~RF24df965c.TMP" />
-    <None Remove="Path\TestClass.cs~RFf58f887.TMP" />
     <None Remove="Program.cs~RF13f10e8.TMP" />
     <None Remove="Program.cs~RFa4f87ba.TMP" />
   </ItemGroup>

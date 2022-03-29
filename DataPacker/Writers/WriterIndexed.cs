@@ -21,8 +21,7 @@ namespace DataPacker.Writers
 
         public override void Dispose()
         {
-            objects.Clear();
-            objectsNamed.Clear();
+            Clear();
             GC.SuppressFinalize(this);
         }
 
