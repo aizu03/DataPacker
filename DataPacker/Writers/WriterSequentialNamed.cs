@@ -5,9 +5,9 @@ using static DataPacker.ByteHelper;
 
 namespace DataPacker.Writers
 {
-    internal class WriterSequential : BaseWriter
+    public class WriterSequentialNamed : BaseWriter
     {
-        protected internal WriterSequential(Stream stream,  Encoding? stringEncoding = null) : base(stream, false, stringEncoding) { }
+        public WriterSequentialNamed(Stream stream, Encoding? stringEncoding = null) : base(stream, true, stringEncoding) { }
 
         public override void Dispose()
         {
@@ -16,8 +16,15 @@ namespace DataPacker.Writers
 
         public override void Flush(bool closeStream)
         {
-            foreach (var obj in objects)
+            foreach (var pair in objectsNamed)
             {
+                var name = Generate(pair.Key, encoding);
+                var obj = pair.Value;
+
+                // Write length and the name bytes
+                stream.Write(BitConverter.GetBytes(name.Length));
+                stream.Write(name);
+
                 // Write length and the object bytes
                 stream.Write(BitConverter.GetBytes(obj.Length));
                 stream.Write(obj);

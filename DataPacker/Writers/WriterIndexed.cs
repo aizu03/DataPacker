@@ -22,7 +22,6 @@ namespace DataPacker.Writers
         public override void Dispose()
         {
             Clear();
-            GC.SuppressFinalize(this);
         }
 
         public override void Flush(bool closeStream)

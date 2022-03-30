@@ -60,7 +60,7 @@ namespace DataPacker.Writers
         }
 
         public abstract void Flush(bool closeStream);
-        
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()

@@ -44,19 +44,19 @@ namespace DataPacker
 
             return default(T) switch
             {
-                byte _ => (T)(object)array[0],
-                bool _ => (T)(object)(array[0] == 1),
-                char _ => (T)(object)BitConverter.ToChar(array, 0),
-                short _ => (T)(object)BitConverter.ToInt16(array, 0),
-                ushort _ => (T)(object)BitConverter.ToUInt16(array, 0),
-                nint _ => (T)(object)BitConverter.ToInt64(array, 0),
-                nuint _ => (T)(object)BitConverter.ToUInt64(array, 0),
                 int _ => (T)(object)BitConverter.ToInt32(array, 0),
-                uint _ => (T)(object)BitConverter.ToUInt32(array, 0),
                 long _ => (T)(object)BitConverter.ToInt64(array, 0),
-                ulong _ => (T)(object)BitConverter.ToUInt64(array, 0),
+                bool _ => (T)(object)(array[0] == 1),
+                byte _ => (T)(object)array[0],
                 float _ => (T)(object)BitConverter.ToSingle(array, 0),
                 double _ => (T)(object)BitConverter.ToDouble(array, 0),
+                ulong _ => (T)(object)BitConverter.ToUInt64(array, 0),
+                short _ => (T)(object)BitConverter.ToInt16(array, 0),
+                ushort _ => (T)(object)BitConverter.ToUInt16(array, 0),
+                uint _ => (T)(object)BitConverter.ToUInt32(array, 0),
+                char _ => (T)(object)BitConverter.ToChar(array, 0),
+                nint _ => (T)(object)BitConverter.ToInt64(array, 0),
+                nuint _ => (T)(object)BitConverter.ToUInt64(array, 0),
                 decimal _ => (T)(object)BitConverter.ToDouble(array, 0),
                 _ => default
             };
@@ -64,20 +64,20 @@ namespace DataPacker
 
         public static object Cast2(Type type, ref byte[] array, Encoding encoding)
         {
-            if (type == typeof(byte)) return array[0];
-            if (type == typeof(bool)) return array[0] == 1;
-            if (type == typeof(short)) return BitConverter.ToInt16(array, 0);
-            if (type == typeof(ushort)) return BitConverter.ToUInt16(array, 0);
             if (type == typeof(int)) return BitConverter.ToInt32(array, 0);
-            if (type == typeof(uint)) return BitConverter.ToUInt32(array, 0);
             if (type == typeof(long)) return BitConverter.ToInt64(array, 0);
-            if (type == typeof(ulong)) return BitConverter.ToUInt64(array, 0);
+            if (type == typeof(bool)) return array[0] == 1;
+            if (type == typeof(byte)) return array[0];
             if (type == typeof(float)) return BitConverter.ToSingle(array, 0);
             if (type == typeof(double)) return BitConverter.ToDouble(array, 0);
+            if (type == typeof(string)) return encoding.GetString(array);
+            if (type == typeof(uint)) return BitConverter.ToUInt32(array, 0);
+            if (type == typeof(ulong)) return BitConverter.ToUInt64(array, 0);
+            if (type == typeof(ushort)) return BitConverter.ToUInt16(array, 0);
+            if (type == typeof(short)) return BitConverter.ToInt16(array, 0);
             if (type == typeof(decimal)) return BitConverter.ToDouble(array, 0);
             if (type == typeof(nint)) return (nint)BitConverter.ToInt64(array, 0); // pointers
             if (type == typeof(nuint)) return (nuint)BitConverter.ToUInt64(array, 0); 
-            if (type == typeof(string)) return encoding.GetString(array);
             if (type == typeof(char)) return BitConverter.ToChar(array, 0);
             return null;
         }

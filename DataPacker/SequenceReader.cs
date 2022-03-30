@@ -18,12 +18,12 @@ namespace DataPacker
             {
                 case DataStructure.Sequential:
 
-                    reader = new ReaderSequential(stream, false, stringEncoding);
+                    reader = new ReaderSequential(stream, stringEncoding);
                     break;
 
                 case DataStructure.SequentialNamed:
 
-                    reader = new ReaderSequential(stream, true, stringEncoding);
+                    reader = new ReaderSequentialNamed(stream, stringEncoding);
                     break;
 
                 case DataStructure.Indexed:

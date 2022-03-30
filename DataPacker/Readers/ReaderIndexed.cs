@@ -20,7 +20,6 @@ namespace DataPacker.Readers
             bookEntries.Clear();
             Entries.Clear();
             NamedEntries?.Clear();
-            GC.SuppressFinalize(this);
         }
 
         private void ReadBook()

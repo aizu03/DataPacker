@@ -15,7 +15,7 @@ namespace DataPacker.Serialization
         private readonly Encoding urlEncoding = Encoding.ASCII;
         private readonly Encoding stringEncoding;
 
-        private readonly Dictionary<object, int?> objectIndexes = new(); // id of object, index of object
+        private readonly Dictionary<object, int?> objectIndexes = new(); // id of object, index of object 
         private readonly List<object> objects = new();
 
         private readonly Dictionary<string, Type> typeTable = new(); // GetType() is very slow. lookup table 3x faster
@@ -71,7 +71,7 @@ namespace DataPacker.Serialization
             // Debug.WriteLine($"Serialize.. {clazz.GetType().Name} {id:X}");
 
             using var ms = new MemoryStream();
-            using var writer = new WriterSequential(ms, false);
+            using var writer = new WriterSequential(ms);
 
             foreach (var field in clazz.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
@@ -140,7 +140,7 @@ namespace DataPacker.Serialization
                 // byte[1, ...]
                 stream.WriteByte(1); // field is not null
 
-                using var writerUrlClass = new WriterSequential(stream, false);
+                using var writerUrlClass = new WriterSequential(stream); // TODO: consider using named writer instead
                 writerUrlClass.Add(urlBytes);
                 writerUrlClass.Add(classBytes);
                 writerUrlClass.Flush(true);
@@ -186,11 +186,11 @@ namespace DataPacker.Serialization
             ms1.WriteByte(1); // field is not null
 
             // TODO: Combine both url writer and array writer
-            using var urlSequenceWriter = new WriterSequential(ms1, false);
+            using var urlSequenceWriter = new WriterSequential(ms1);
             urlSequenceWriter.Add(urlEncoding.GetBytes(url));
 
             using var ms2 = new MemoryStream();
-            using var arrayWriter = new WriterSequential(ms2, false);
+            using var arrayWriter = new WriterSequential(ms2);
 
             foreach (var arr in array)
             {
@@ -248,7 +248,7 @@ namespace DataPacker.Serialization
             if (classBytes.Length == 0) return clazz;
 
             using var stream = new MemoryStream(classBytes);
-            using var sequenceFields = new ReaderSequential(stream, false);
+            using var sequenceFields = new ReaderSequential(stream);
             sequenceFields.Read(true);
 
             for (var i = 0; i < fields.Length; i++)
@@ -290,7 +290,7 @@ namespace DataPacker.Serialization
 
                 // Other classes
                 using var ms = new MemoryStream(fieldBytes);
-                using var sequenceUrlBytes = new ReaderSequential(ms, false);
+                using var sequenceUrlBytes = new ReaderSequential(ms);
                 sequenceUrlBytes.Read(true);
 
                 var otherUrl = urlEncoding.GetString(sequenceUrlBytes[0].data);
@@ -311,14 +311,14 @@ namespace DataPacker.Serialization
 
             // Read URL and sequence bytes
             using var ms1 = new MemoryStream(arrayBytes);
-            using var urlSequenceReader = new ReaderSequential(ms1, false);
+            using var urlSequenceReader = new ReaderSequential(ms1);
             urlSequenceReader.Read(true);
             var arrayTypeUrl = urlSequenceReader[0].ToString(urlEncoding);
             var sequenceBytes = urlSequenceReader[1].data;
 
             // Read array entries [0/1, data]
             using var ms2 = new MemoryStream(sequenceBytes);
-            using var isNullBytesReader = new ReaderSequential(ms2, false);
+            using var isNullBytesReader = new ReaderSequential(ms2);
             isNullBytesReader.Read(true);
 
             // Create empty array

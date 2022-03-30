@@ -13,12 +13,12 @@ namespace DataPacker
             {
                 case DataStructure.Sequential:
 
-                    writer = new WriterSequential(stream, false, stringEncoding);
+                    writer = new WriterSequential(stream, stringEncoding);
                     break;
 
                 case DataStructure.SequentialNamed:
 
-                    writer = new WriterSequential(stream, true, stringEncoding);
+                    writer = new WriterSequentialNamed(stream, stringEncoding);
                     break;
 
                 case DataStructure.Indexed:
