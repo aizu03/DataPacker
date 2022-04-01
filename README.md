@@ -29,12 +29,12 @@ using var writer = new SequenceWriter(ms, DataStructure.SequentialNamed);
 writer.Add("Description", "Alice is looking for Bob!");
 ```
 
-Sequential data is saved as this:
+Sequential data is saved like this:
 ```C#
 [len, data, len, data, len, data...]
 ```
 
-If the structure is a named:
+If the structure is named:
 ```C#
 [len name, name, len data, data, len name, name, len data, data]
 ```
