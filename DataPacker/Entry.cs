@@ -1,11 +1,12 @@
 ﻿using System.Text;
+using DataPacker.Serialization;
 using static DataPacker.ByteHelper;
 
 namespace DataPacker
 {
     public struct Entry
     {
-        public string name;
+        public string? name;
         public byte[] data;
         public int length;
         private readonly Encoding encoding;
@@ -17,6 +18,9 @@ namespace DataPacker
             this.encoding = encoding;
             this.name = name;
         }
+
+        public T Deserialize<T>() => CompactFormatter.Deserialize<T>(data);
+        public T Deserialize<T>(IFormatter formatter) => formatter.Deserialize<T>(data);
 
         public byte ToByte() => Cast<byte>(ref data);
         public bool ToBool() => Cast<bool>(ref data);

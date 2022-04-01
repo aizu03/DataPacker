@@ -1,6 +1,8 @@
-﻿namespace DataPacker.Serialization
+﻿using System.Text;
+
+namespace DataPacker.Serialization
 {
-    internal class CompressedFormatter
+    internal class CompressedFormatter : BaseFormatter
     {
 
         // TODO:
@@ -13,6 +15,24 @@
         To slightly compress everything   
         */
 
+        public CompressedFormatter(Encoding stringEncoding) : base(stringEncoding)
+        {
+            throw new System.NotImplementedException();
+        }
 
+        public CompressedFormatter()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override byte[] Serialize(object clazz)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override T Deserialize<T>(byte[] bytes)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

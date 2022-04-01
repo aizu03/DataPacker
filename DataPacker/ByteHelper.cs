@@ -1,6 +1,4 @@
-﻿#pragma warning disable CS8603
-
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -12,7 +10,8 @@ namespace DataPacker
         /// Primitive to byte array
         /// </summary>
         /// <returns></returns>
-        public static byte[] Generate(object obj, Encoding? encoding)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] Generate(object obj, Encoding encoding)
         {
             return obj switch
             {
@@ -31,7 +30,7 @@ namespace DataPacker
                 float s => BitConverter.GetBytes(s),
                 double d => BitConverter.GetBytes(d),
                 decimal m => BitConverter.GetBytes((double)m), // dirty
-                _ => null
+                _ => throw new ArgumentException("Unknown Type")
             };
         }
 
@@ -40,7 +39,7 @@ namespace DataPacker
         /// </summary>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] FormatterGenerate(object obj, Encoding encoding)
+        public static byte[] GenerateFieldEntry(object obj, Encoding encoding)
         {
             unsafe
             {
@@ -209,7 +208,7 @@ namespace DataPacker
                         return b11;
 
                     default:
-                        return null;
+                        throw new ArgumentException("Unknown Type");
                 }
             }
         }
@@ -237,7 +236,7 @@ namespace DataPacker
                 nint _ => (T)(object)BitConverter.ToInt64(array, 0),
                 nuint _ => (T)(object)BitConverter.ToUInt64(array, 0),
                 decimal _ => (T)(object)BitConverter.ToDouble(array, 0),
-                _ => default
+                _ => throw new ArgumentException("Unknown Type")
             };
         }
 
@@ -259,7 +258,7 @@ namespace DataPacker
             if (type == typeof(nint)) return (nint)BitConverter.ToInt64(array, 0); // pointers
             if (type == typeof(nuint)) return (nuint)BitConverter.ToUInt64(array, 0);
             if (type == typeof(char)) return BitConverter.ToChar(array, 0);
-            return null;
+            throw new ArgumentException("Unknown Type");
         }
     }
 }

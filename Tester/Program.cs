@@ -29,7 +29,7 @@ public class Tester
             ("IndexedWriter", TestIndexed),
             ("Indexed Advanced 1", TestIndexedAdvanced),
             ("Indexed Advanced 2", TestIndexedAdvanced2),
-      //      ("Massive List", TestMassiveList)
+            ("Massive List", TestMassiveList)
         };
 
         var passed = 0;

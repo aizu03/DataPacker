@@ -11,29 +11,15 @@ using static DataPacker.ByteHelper;
 
 namespace DataPacker.Serialization
 {
-    public class BasicFormatter : IDisposable
+    public class BasicFormatter : BaseFormatter
     {
-        private readonly Encoding urlEncoding = Encoding.ASCII;
-        private readonly Encoding stringEncoding;
+        public BasicFormatter(Encoding stringEncoding) : base(stringEncoding) {}
 
-        private readonly Dictionary<object, int?> objectIndexes = new(); // id of object, index of object 
-        private readonly List<object> objects = new();
-
-        private readonly Dictionary<string, Type> typeTable = new(); // GetType() is very slow. lookup table 3x faster
-
-        public BasicFormatter(Encoding stringEncoding)
-        {
-            this.stringEncoding = stringEncoding;
-        }
-
-        public BasicFormatter()
-        {
-            stringEncoding = Encoding.Unicode;
-        }
+        public BasicFormatter() { }
 
         #region Serialize
 
-        public byte[] Serialize(object clazz)
+        public override byte[] Serialize(object clazz)
         {
             if (clazz == null) throw new ArgumentException("Object is null!");
             var bytes = ClassToBytes(clazz);
@@ -90,7 +76,7 @@ namespace DataPacker.Serialization
                 if (fieldType.IsPrimitive || fieldType == typeof(string))
                 {
                     // Add [1, bytes] field is not null
-                    var bytes = FormatterGenerate(fieldValue, stringEncoding);
+                    var bytes = GenerateFieldEntry(fieldValue, stringEncoding);
                     writer.Add(bytes);
                     continue;
                 }
@@ -126,7 +112,7 @@ namespace DataPacker.Serialization
 
                 // Add other classes
                 var url = fieldValue.GetType().FullName;
-                var urlBytes = urlEncoding.GetBytes(url);
+                var urlBytes = urlEncoding.GetBytes(url!);
                 var classBytes = ClassToBytes(fieldValue);
 
                 // Combine URL and class bytes into 1 sequence
@@ -182,7 +168,7 @@ namespace DataPacker.Serialization
 
             // TODO: Combine both url writer and array writer
             using var urlSequenceWriter = new WriterSequential(ms1);
-            urlSequenceWriter.Add(urlEncoding.GetBytes(url));
+            urlSequenceWriter.Add(urlEncoding.GetBytes(url!));
 
             using var ms2 = new MemoryStream();
             using var arrayWriter = new WriterSequential(ms2);
@@ -223,11 +209,11 @@ namespace DataPacker.Serialization
 
         #region Deserialize
 
-        public T Deserialize<T>(byte[] bytes)
+        public override T Deserialize<T>(byte[] bytes)
         {
             objects.Clear();
             var url = typeof(T).FullName;
-            return (T)ClassFromBytes(ref url, ref bytes);
+            return (T)ClassFromBytes(ref url!, ref bytes);
         }
 
         private object ClassFromBytes(ref string url, ref byte[] classBytes)
@@ -388,11 +374,6 @@ namespace DataPacker.Serialization
                 }
             }
             throw new ArgumentException($"Can't find class {url}");
-        }
-
-        public void Dispose()
-        {
-            typeTable.Clear();
         }
     }
 }
