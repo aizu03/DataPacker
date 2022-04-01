@@ -19,39 +19,45 @@ public class Tester
     {
         Console.WriteLine("Begin tests...\n");
 
-        TestSimpleClasses();
-        Console.WriteLine("Test Simple Classes passed!");
+        var tests = new List<(string, Action)>
+        {
+            ("Simple Classes", TestSimpleClasses),
+            ("Simple List", () => TestSimpleList(false)),
+            ("Simple List", () => TestSimpleList(true)),
+            ("Arrays", TestArrays),
+            ("References", TestSelfReference),
+            ("IndexedWriter", TestIndexed),
+            ("Indexed Advanced 1", TestIndexedAdvanced),
+            ("Indexed Advanced 2", TestIndexedAdvanced2),
+      //      ("Massive List", TestMassiveList)
+        };
 
-        TestSimpleList(false);
-        TestSimpleList(true);
-        Console.WriteLine("Test Simple List passed!");
+        var passed = 0;
+        foreach (var (name, test) in tests)
+        {
+            try
+            {
+                test.Invoke();
+                ++passed;
 
-        TestArrays();
-        Console.WriteLine("Test Arrays passed!");
-
-        TestSelfReference();
-        Console.WriteLine("Test References passed!");
-
-        TestIndexed();
-        Console.WriteLine("Test Indexed passed!");
-
-        TestIndexedAdvanced();
-        Console.WriteLine("Test Indexed Advanced passed!");
-
-        TestIndexedAdvanced2();
-        Console.WriteLine("Test Indexed Advanced Named passed!");    
-        
-        TestMassiveList();
-        Console.WriteLine("Test Massive List passed!");
-
-        Console.WriteLine("\nAll tests passed!");
-
-        // CompactFormatter
-        // 1 complex class of 300 objects, average deserialization time: 1ms
+                Console.WriteLine($"Test {passed}/{tests.Count} passed! -> {name}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Console.WriteLine($"Test {name} failed!");
+            }
+        }
     }
 
     private static void TestSimpleClasses()
     {
+        var simplePacket = new RotationPacket(1337, 102.450019, -2.0);
+        var packetBytes = CompactFormatter.Serialize(simplePacket);
+        var serverPacket = CompactFormatter.Deserialize<RotationPacket>(packetBytes);
+        if (serverPacket.playerId != 1337 || serverPacket.pitch != -2.0)
+            throw new Exception();
+
         var pointers = new Pointers();
         var simple = new Simple("Alice", 22, 1337, "wants Bobs attention!");
         var pi = 3.141592653589793238;
@@ -75,7 +81,17 @@ public class Tester
             pi != reader[2].ToDouble() ||
             info != reader[3].ToString())
             throw new Exception();
-        ;
+
+        
+        /*var sw = Stopwatch.StartNew();
+        using var basic = new BasicFormatter();
+        for (var i = 0; i < 1000000; i++)
+        {
+            var bt = basic.Serialize(simplePacket); // ~0.0007 ms
+        }
+        var time = sw.ElapsedMilliseconds;
+        Console.WriteLine($"Time {time} ms");
+        Environment.Exit(-1);*/
     }
 
     private static void TestSimpleList(bool named)
@@ -268,7 +284,7 @@ public class Tester
     {
         var rnd = new Random();
         var strings = new List<StringObject>();
-        const int size = 100000;
+        const int size = 1000000;
         const string set = "abcdefghijklmnopqrstuvwxyz0123456789";
         var len = set.Length;
 
@@ -284,7 +300,7 @@ public class Tester
 
         using var formatter = new BasicFormatter();
         var sw = Stopwatch.StartNew();
-        var bytes = formatter.Serialize(strings); // ~ 150 ms for 100k item per object
+        var bytes = formatter.Serialize(strings); // ~ 150 ms for 100k items per object
         var ms = sw.ElapsedMilliseconds;
 
         Console.WriteLine($"Time {ms} ms");
@@ -296,6 +312,4 @@ public class Tester
         Console.WriteLine($"Time {ms} ms");
         if (u2.Count != size) throw new Exception();
     }
-
-
 }

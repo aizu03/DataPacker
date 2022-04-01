@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using DataPacker.Readers;
 using DataPacker.Writers;
+using static DataPacker.ByteHelper;
 
 namespace DataPacker.Serialization
 {
@@ -75,7 +76,6 @@ namespace DataPacker.Serialization
 
             foreach (var field in clazz.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
-                var fieldType = field.FieldType;
                 var fieldValue = field.GetValue(clazz);
 
                 // Add null entry
@@ -86,15 +86,11 @@ namespace DataPacker.Serialization
                 }
 
                 // Add primitive types or strings
+                var fieldType = field.FieldType;
                 if (fieldType.IsPrimitive || fieldType == typeof(string))
                 {
-                    var fieldBytes = ByteHelper.Generate(fieldValue, stringEncoding);
-
-                    // [1, bytes..]
-                    var bytes = new byte[fieldBytes.Length + 1];
-                    bytes[0] = 1; // field not null
-                    Buffer.BlockCopy(fieldBytes, 0, bytes, 1, fieldBytes.Length);
-
+                    // Add [1, bytes] field is not null
+                    var bytes = FormatterGenerate(fieldValue, stringEncoding);
                     writer.Add(bytes);
                     continue;
                 }
@@ -114,7 +110,6 @@ namespace DataPacker.Serialization
                     // [2, index]
                     var bytes = new byte[5];
                     bytes[0] = 2;
-
                     unsafe
                     {
                         var i = (int)index;
@@ -211,7 +206,7 @@ namespace DataPacker.Serialization
                 }
 
                 // Write primitive, string or object
-                arrayWriter.Add(isBasePrimitiveOrString ? ByteHelper.Generate(arr, stringEncoding) : ClassToBytes(arr));
+                arrayWriter.Add(isBasePrimitiveOrString ? Generate(arr, stringEncoding) : ClassToBytes(arr));
             }
 
             // Write the sequence of (1, data, 1, data, 0, 0, 1, data, 0, 0, 0, 0...]
@@ -268,7 +263,7 @@ namespace DataPacker.Serialization
                 if (fieldType.IsPrimitive || fieldType == typeof(string))
                 {
                     // Parse bytes into primitive field type
-                    field.SetValue(clazz, ByteHelper.Cast2(fieldType, ref fieldBytes, Encoding.Unicode));
+                    field.SetValue(clazz, Cast2(fieldType, ref fieldBytes, Encoding.Unicode));
                     continue;
                 }
 
@@ -283,7 +278,8 @@ namespace DataPacker.Serialization
                 if (bytes[0] == 2)
                 {
                     // Get object by index
-                    var target = objects[BitConverter.ToInt32(bytes, 1)];
+                    var idx = BitConverter.ToInt32(bytes, 1);
+                    var target = objects[idx];
                     field.SetValue(clazz, target);
                     continue;
                 }
@@ -360,7 +356,7 @@ namespace DataPacker.Serialization
                 {
                     // Convert [entry bytes] to primitive, string or class object
                     arr.SetValue(isBasePrimitiveOrString ?
-                        ByteHelper.Cast2(baseType, ref entryBytes, stringEncoding) :
+                        Cast2(baseType, ref entryBytes, stringEncoding) :
                         ClassFromBytes(ref arrayTypeUrl, ref entryBytes), index++);
                 }
             }
