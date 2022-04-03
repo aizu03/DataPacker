@@ -82,7 +82,7 @@ public class Tester
             info != reader[3].ToString())
             throw new Exception();
 
-        
+
         /*var sw = Stopwatch.StartNew();
         using var basic = new BasicFormatter();
         for (var i = 0; i < 1000000; i++)
@@ -253,12 +253,12 @@ public class Tester
         if (reader2["e6"].ToChar() != '\n' || reader2["e5"].ToInt32() != 69) throw new Exception();
 
     }
-   
+
     private static void TestIndexedAdvanced2()
     {
         using var ms = new MemoryStream();
         using var writer = new SequenceWriter(ms, DataStructure.Indexed);
-       
+
         writer.Add("Hello World!");
         writer.Add(int.MaxValue);
         writer.Add((ushort)12);
@@ -276,7 +276,7 @@ public class Tester
         apWriter.Flush(false);
 
         ms.Position = 0;
-        using var verifyReader = new SequenceReader(ms, DataStructure.Indexed, autoRead:true);
+        using var verifyReader = new SequenceReader(ms, DataStructure.Indexed, autoRead: true);
         if (verifyReader[4].ToString() != "New Data!" || verifyReader[6].ToString() != "Passed!") throw new Exception();
     }
 
@@ -291,7 +291,7 @@ public class Tester
         for (var i = 0; i < size; i++)
         {
             var sb = new StringBuilder();
-            for (var j= 0; j < 3; j++) // do collision testing
+            for (var j = 0; j < 3; j++) // do collision testing
                 sb.Append(set[rnd.Next(len)]);
 
             var str = sb.ToString();
@@ -300,7 +300,7 @@ public class Tester
 
         using var formatter = new BasicFormatter();
         var sw = Stopwatch.StartNew();
-        var bytes = formatter.Serialize(strings); // ~ 150 ms for 100k items per object
+        var bytes = formatter.Serialize(strings);
         var ms = sw.ElapsedMilliseconds;
 
         Console.WriteLine($"Time {ms} ms");
@@ -311,5 +311,51 @@ public class Tester
         ms = sw.ElapsedMilliseconds;
         Console.WriteLine($"Time {ms} ms");
         if (u2.Count != size) throw new Exception();
+    }
+
+    private static void DebugTesting()
+    {
+        var num = 1304;
+
+        unsafe
+        {
+            /*
+            var pt = (byte*)&num;
+            var b0 = pt[0];
+            var b1 = pt[1];
+            var b2 = pt[2];
+            var b3 = pt[3];
+
+            Console.WriteLine($"{b0} {b1} {b2} {b3}");
+            */
+
+            for (var i = 0; i < 10; i++)
+            {
+                var sw = Stopwatch.StartNew();
+                for (var j = 0; j < 1000000; j++)
+                {
+                    var bt = new byte[5];
+                    var pt = (byte*)&j;
+                    bt[0] = 1;
+                    bt[1] = pt[0];
+                    bt[2] = pt[1];
+                    bt[3] = pt[2];
+                    bt[4] = pt[3];
+                }
+
+                var time = sw.ElapsedMilliseconds;
+                Console.WriteLine($"Time: {time} ms");
+
+            }
+
+            /*var bt = new byte[5];
+                    bt[0] = 1;
+                    bt[1] = (byte)((j >> 0) & 0xff);
+                    bt[2] = (byte)((j >> 8) & 0xff);
+                    bt[3] = (byte)((j >> 16) & 0xff);
+                    bt[4] = (byte)((j >> 24) & 0xff);
+
+            Console.WriteLine($"{b4} {b5} {b6} {b7}");*/
+        }
     }
 }

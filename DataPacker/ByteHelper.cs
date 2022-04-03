@@ -38,7 +38,7 @@ namespace DataPacker
         /// Generate field entry [1, bytes..]
         /// </summary>
         /// <returns></returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public static byte[] GenerateFieldEntry(object obj, Encoding encoding)
         {
             unsafe

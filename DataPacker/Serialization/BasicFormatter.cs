@@ -121,7 +121,7 @@ namespace DataPacker.Serialization
                 // byte[1, ...]
                 stream.WriteByte(1); // field is not null
 
-                using var writerUrlClass = new WriterSequential(stream); // TODO: consider using named writer instead
+                using var writerUrlClass = new WriterSequential(stream);
                 writerUrlClass.Add(urlBytes);
                 writerUrlClass.Add(classBytes);
                 writerUrlClass.Flush(true);
