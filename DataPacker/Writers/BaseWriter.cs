@@ -17,10 +17,10 @@ namespace DataPacker.Writers
 
         protected BaseWriter(Stream stream) : base(stream) { }
 
-        protected BaseWriter(Stream stream, bool named, Encoding? stringEncoding = null) : base(stream)
+        protected BaseWriter(Stream stream, bool named, Encoding stringEncoding) : base(stream)
         {
             this.named = named;
-            if (stringEncoding != null) encoding = stringEncoding;
+            encoding = stringEncoding;
         }
 
         public int Size() => named ? objectsNamed.Count : objects.Count;

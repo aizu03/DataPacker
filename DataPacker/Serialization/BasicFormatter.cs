@@ -11,15 +11,34 @@ using static DataPacker.ByteHelper;
 
 namespace DataPacker.Serialization
 {
-    public class BasicFormatter : BaseFormatter
+    public class BasicFormatter : IDisposable
     {
-        public BasicFormatter(Encoding stringEncoding) : base(stringEncoding) {}
+        private protected readonly Encoding urlEncoding = Encoding.ASCII;
+        private protected readonly Encoding stringEncoding;
 
-        public BasicFormatter() { }
+        private protected readonly Dictionary<object, int?> objectIndexes = new(); // id of object, index of object 
+        private protected readonly List<object> objects = new();
+
+        private protected readonly Dictionary<string, Type> typeTable = new(); // GetType() is very slow. lookup table 3x faster
+
+        public BasicFormatter(Encoding stringEncoding)
+        {
+            this.stringEncoding = stringEncoding;
+        }
+
+        public BasicFormatter()
+        {
+            stringEncoding = Encoding.Unicode;
+        }
+
+        public void Dispose()
+        {
+            typeTable.Clear();
+        }
 
         #region Serialize
 
-        public override byte[] Serialize(object clazz)
+        public byte[] Serialize(object clazz)
         {
             if (clazz == null) throw new ArgumentException("Object is null!");
             var bytes = ClassToBytes(clazz);
@@ -58,7 +77,7 @@ namespace DataPacker.Serialization
             // Debug.WriteLine($"Serialize.. {clazz.GetType().Name} {id:X}");
 
             using var ms = new MemoryStream();
-            using var writer = new WriterSequential(ms);
+            using var writer = new WriterSequential(ms, stringEncoding);
 
             foreach (var field in clazz.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
@@ -111,15 +130,31 @@ namespace DataPacker.Serialization
                 }
 
                 // Add other classes
+                var classBytes = ClassToBytes(fieldValue);
+                var len = classBytes.Length;
+                var otherBytes = new byte[len + 1];
+
+                // byte[1, bytes ..]
+                otherBytes[0] = 1;
+                Buffer.BlockCopy(classBytes, 0, otherBytes, 1, len);
+
+                ;
+                writer.Add(otherBytes);
+                /*
+                writer.Add(otherBytes);
+
+         
                 var url = fieldValue.GetType().FullName;
                 var urlBytes = urlEncoding.GetBytes(url!);
-                var classBytes = ClassToBytes(fieldValue);
 
                 // Combine URL and class bytes into 1 sequence
                 using var stream = new MemoryStream();
 
                 // byte[1, ...]
                 stream.WriteByte(1); // field is not null
+                stream.Write(ClassToBytes(fieldValue));
+
+
 
                 using var writerUrlClass = new WriterSequential(stream);
                 writerUrlClass.Add(urlBytes);
@@ -127,7 +162,7 @@ namespace DataPacker.Serialization
                 writerUrlClass.Flush(true);
                 // byte[1, URL, bytes]
 
-                writer.Add(stream.ToArray());
+                writer.Add(stream.ToArray());*/
             }
 
             writer.Flush(true);
@@ -155,24 +190,16 @@ namespace DataPacker.Serialization
 
             // byte[0]
             if (array.Length == 0) return new byte[] { 0 }; // field is null
+            using var ms = new MemoryStream();
+            // field is not null
+            // byte[1, ...]
+            ms.WriteByte(1); 
+
+            using var arrayWriter = new WriterSequential(ms, stringEncoding);
 
             // Get array type
             var baseType = type.GetElementType();
             var isBasePrimitiveOrString = baseType.IsPrimitive || baseType == typeof(string);
-            var url = baseType.FullName;
-
-            using var ms1 = new MemoryStream();
-
-            // byte[1, ...]
-            ms1.WriteByte(1); // field is not null
-
-            // TODO: Combine both url writer and array writer
-            using var urlSequenceWriter = new WriterSequential(ms1);
-            urlSequenceWriter.Add(urlEncoding.GetBytes(url!));
-
-            using var ms2 = new MemoryStream();
-            using var arrayWriter = new WriterSequential(ms2);
-
             foreach (var arr in array)
             {
                 if (arr == null)
@@ -195,21 +222,17 @@ namespace DataPacker.Serialization
                 arrayWriter.Add(isBasePrimitiveOrString ? Generate(arr, stringEncoding) : ClassToBytes(arr));
             }
 
-            // Write the sequence of (1, data, 1, data, 0, 0, 1, data, 0, 0, 0, 0...]
+            // Write the sequence [is null, data]
             arrayWriter.Flush(true);
 
-            // Write the sequence [URL, sequence[is null, data]]
-            urlSequenceWriter.Add(ms2.ToArray());
-            urlSequenceWriter.Flush(true);
-
-            return ms1.ToArray();
+            return ms.ToArray();
         }
 
         #endregion
 
         #region Deserialize
 
-        public override T Deserialize<T>(byte[] bytes)
+        public T Deserialize<T>(byte[] bytes)
         {
             objects.Clear();
             var url = typeof(T).FullName;
@@ -239,13 +262,12 @@ namespace DataPacker.Serialization
                 var bytes = sequenceFields[i].data;
                 if (bytes[0] == 0) continue; // field is null
 
-                var fieldType = field.FieldType;
-
                 // Remove the null indicator
                 var fieldBytes = new byte[bytes.Length - 1];
                 Buffer.BlockCopy(bytes, 1, fieldBytes, 0, bytes.Length - 1);
 
                 // Primitives or strings
+                var fieldType = field.FieldType;
                 if (fieldType.IsPrimitive || fieldType == typeof(string))
                 {
                     // Parse bytes into primitive field type
@@ -271,14 +293,8 @@ namespace DataPacker.Serialization
                 }
 
                 // Other classes
-                using var ms = new MemoryStream(fieldBytes);
-                using var sequenceUrlBytes = new ReaderSequential(ms);
-                sequenceUrlBytes.Read(true);
-
-                var otherUrl = urlEncoding.GetString(sequenceUrlBytes[0].data);
-                var otherBytes = sequenceUrlBytes[1].data;
-
-                field.SetValue(clazz, ClassFromBytes(ref otherUrl, ref otherBytes));
+                var otherUrl = fieldType.FullName!;
+                field.SetValue(clazz, ClassFromBytes(ref otherUrl, ref fieldBytes));
             }
 
             return clazz;
@@ -286,32 +302,24 @@ namespace DataPacker.Serialization
 
         private object ArrayFromBytes(ref byte[] arrayBytes, Type type)
         {
-            // sequence[URL, sequence[is null, bytes]]
-
             var baseType = type.GetElementType();
             var isBasePrimitiveOrString = baseType.IsPrimitive || baseType == typeof(string);
-
-            // Read URL and sequence bytes
-            using var ms1 = new MemoryStream(arrayBytes);
-            using var urlSequenceReader = new ReaderSequential(ms1);
-            urlSequenceReader.Read(true);
-            var arrayTypeUrl = urlSequenceReader[0].ToString(urlEncoding);
-            var sequenceBytes = urlSequenceReader[1].data;
-
-            // Read array entries [0/1, data]
-            using var ms2 = new MemoryStream(sequenceBytes);
-            using var isNullBytesReader = new ReaderSequential(ms2);
-            isNullBytesReader.Read(true);
+            var arrayTypeUrl = baseType.FullName!;
+  
+            // Read array entries [is null, data]
+            using var ms2 = new MemoryStream(arrayBytes);
+            using var sequenceReader = new ReaderSequential(ms2);
+            sequenceReader.Read(true);
 
             // Create empty array
-            var arraySize = isNullBytesReader.Entries.Count / 2;
+            var arraySize = sequenceReader.Entries.Count / 2;
             var arr = Array.CreateInstance(baseType, arraySize);
 
             // Fill array
             var index = 0;
-            for (var j = 0; j < isNullBytesReader.Entries.Count; j++)
+            for (var j = 0; j < sequenceReader.Entries.Count; j++)
             {
-                var entryBytes = isNullBytesReader.Entries[j].data;
+                var entryBytes = sequenceReader.Entries[j].data;
 
                 // Skip null entries
                 if ((j & 1) == 0)

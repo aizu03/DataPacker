@@ -7,7 +7,7 @@ namespace DataPacker.Writers
 {
     public class WriterSequentialNamed : BaseWriter
     {
-        public WriterSequentialNamed(Stream stream, Encoding? stringEncoding = null) : base(stream, true, stringEncoding) { }
+        public WriterSequentialNamed(Stream stream, Encoding stringEncoding) : base(stream, true, stringEncoding) { }
 
         public override void Dispose()
         {

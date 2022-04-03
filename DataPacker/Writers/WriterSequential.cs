@@ -7,7 +7,7 @@ namespace DataPacker.Writers
 {
     internal class WriterSequential : BaseWriter
     {
-        protected internal WriterSequential(Stream stream,  Encoding? stringEncoding = null) : base(stream, false, stringEncoding) { }
+        protected internal WriterSequential(Stream stream,  Encoding stringEncoding) : base(stream, false, stringEncoding) { }
 
         public override void Dispose()
         {

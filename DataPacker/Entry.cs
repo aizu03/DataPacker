@@ -20,7 +20,7 @@ namespace DataPacker
         }
 
         public T Deserialize<T>() => CompactFormatter.Deserialize<T>(data);
-        public T Deserialize<T>(IFormatter formatter) => formatter.Deserialize<T>(data);
+        public T Deserialize<T>(BasicFormatter formatter) => formatter.Deserialize<T>(data);
 
         public byte ToByte() => Cast<byte>(ref data);
         public bool ToBool() => Cast<bool>(ref data);

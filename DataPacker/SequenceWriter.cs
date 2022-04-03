@@ -9,6 +9,7 @@ namespace DataPacker
 
         public SequenceWriter(Stream stream, DataStructure structure = DataStructure.Sequential, Encoding? stringEncoding = null, SequenceReader? appendReader = null)
         {
+            stringEncoding ??= Encoding.Unicode;
             switch(structure)
             {
                 case DataStructure.Sequential:

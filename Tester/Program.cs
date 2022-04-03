@@ -29,7 +29,7 @@ public class Tester
             ("IndexedWriter", TestIndexed),
             ("Indexed Advanced 1", TestIndexedAdvanced),
             ("Indexed Advanced 2", TestIndexedAdvanced2),
-            ("Massive List", TestMassiveList)
+       //     ("Massive List", TestMassiveList)
         };
 
         var passed = 0;
@@ -45,7 +45,7 @@ public class Tester
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Console.WriteLine($"Test {name} failed!");
+                Console.WriteLine($"\nTest {name} failed!");
             }
         }
     }
@@ -147,6 +147,12 @@ public class Tester
 
     private static void TestArrays()
     {
+        var arr2 = new Arrays2();
+        var bytes2 = CompactFormatter.Serialize(arr2);
+        var arr2Rec = CompactFormatter.Deserialize<Arrays2>(bytes2);
+
+        if (arr2Rec.rotations[6].pitch != 51.3 || arr2Rec.str != "Passed?") throw new Exception();
+
         var arr = new ArraysTest
         {
             simple1 = new Vector2[] { new(1.14f, 2.3f), new(-4f, 90f) },

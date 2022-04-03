@@ -12,7 +12,7 @@ namespace DataPacker.Writers
         private readonly ReaderIndexed? appendReader;
 
         // Not appending
-        public WriterIndexed(Stream stream, bool named, Encoding? stringEncoding = null, ReaderIndexed? appendReader = null)
+        public WriterIndexed(Stream stream, bool named, Encoding stringEncoding, ReaderIndexed? appendReader = null)
             : base(stream, named, stringEncoding)     
         {
             if (appendReader != null)     
