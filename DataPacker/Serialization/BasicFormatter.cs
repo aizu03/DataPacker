@@ -47,12 +47,18 @@ namespace DataPacker.Serialization
         ///
         /// The class is converted into a basic <see cref="SequenceWriter"/>
         /// Each entry in the sequence represents the field value as a byte[]
+        ///
+        /// Field is null:
+        /// byte[0]
         /// 
         /// If the field is a primitive or string:
-        /// byte[is null, value..]
+        /// byte[1, value..]
         /// 
         /// If it's an object:
-        /// byte[is null, url, bytes of object]
+        /// byte[1, url, bytes of object]
+        ///
+        /// If it's an array:
+        /// byte[1, sequence[is null, data]]
         /// 
         /// If it's a reference to an object currently serializing:
         /// byte[2, index of object]
@@ -134,32 +140,7 @@ namespace DataPacker.Serialization
                 // byte[1, bytes ..]
                 otherBytes[0] = 1;
                 Buffer.BlockCopy(classBytes, 0, otherBytes, 1, len);
-
-                ;
                 writer.Add(otherBytes);
-                /*
-                writer.Add(otherBytes);
-
-         
-                var url = fieldValue.GetType().FullName;
-                var urlBytes = urlEncoding.GetBytes(url!);
-
-                // Combine URL and class bytes into 1 sequence
-                using var stream = new MemoryStream();
-
-                // byte[1, ...]
-                stream.WriteByte(1); // field is not null
-                stream.Write(ClassToBytes(fieldValue));
-
-
-
-                using var writerUrlClass = new WriterSequential(stream);
-                writerUrlClass.Add(urlBytes);
-                writerUrlClass.Add(classBytes);
-                writerUrlClass.Flush(true);
-                // byte[1, URL, bytes]
-
-                writer.Add(stream.ToArray());*/
             }
 
             writer.Flush(true);
@@ -168,11 +149,7 @@ namespace DataPacker.Serialization
 
         /// <summary>
         /// 
-        /// byte[1, sequence[URL, sequence[is null, bytes]]] 
-        /// 
-        /// 1. 1 = is not null
-        /// 2. a sequence of the url and the array data
-        /// 3. containing entry is null or the bytes
+        /// byte[1, sequence[is null, bytes]]
         /// 
         /// </summary>
         /// <returns></returns>
@@ -301,7 +278,7 @@ namespace DataPacker.Serialization
         {
             var baseType = type.GetElementType();
             var isBasePrimitiveOrString = baseType.IsPrimitive || baseType == typeof(string);
-            var arrayTypeUrl = baseType.FullName!;
+            var url = baseType.FullName!;
   
             // Read array entries [is null, data]
             using var ms2 = new MemoryStream(arrayBytes);
@@ -348,7 +325,7 @@ namespace DataPacker.Serialization
                     // Convert [entry bytes] to primitive, string or class object
                     arr.SetValue(isBasePrimitiveOrString ?
                         Cast2(baseType, ref entryBytes, stringEncoding) :
-                        ClassFromBytes(ref arrayTypeUrl, ref entryBytes), index++);
+                        ClassFromBytes(ref url, ref entryBytes), index++);
                 }
             }
 
