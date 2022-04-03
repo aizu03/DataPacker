@@ -13,13 +13,10 @@ namespace DataPacker.Serialization
 {
     public class BasicFormatter : IDisposable
     {
-        private protected readonly Encoding urlEncoding = Encoding.ASCII;
         private protected readonly Encoding stringEncoding;
-
-        private protected readonly Dictionary<object, int?> objectIndexes = new(); // id of object, index of object 
-        private protected readonly List<object> objects = new();
-
         private protected readonly Dictionary<string, Type> typeTable = new(); // GetType() is very slow. lookup table 3x faster
+        private protected readonly Dictionary<object, int?> objectIndexes = new(); // object, index of object 
+        private protected readonly List<object> objects = new();
 
         public BasicFormatter(Encoding stringEncoding)
         {

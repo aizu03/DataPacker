@@ -8,6 +8,7 @@ using DataPacker.Serialization;
 using System.Numerics;
 using DataPacker;
 using System.Text;
+using System.Threading;
 using Tester.Testing;
 using static System.String;
 
@@ -29,7 +30,7 @@ public class Tester
             ("IndexedWriter", TestIndexed),
             ("Indexed Advanced 1", TestIndexedAdvanced),
             ("Indexed Advanced 2", TestIndexedAdvanced2),
-       //     ("Massive List", TestMassiveList)
+            ("Massive List", TestMassiveList)
         };
 
         var passed = 0;
@@ -48,6 +49,12 @@ public class Tester
                 Console.WriteLine($"\nTest {name} failed!");
             }
         }
+
+        /*using var fs = new FileStream(@"C:\Users\Felipe\Desktop\object.data", FileMode.CreateNew);
+        using var writer = new SequenceWriter(fs);
+        writer.Add("Some configs!");
+        // ...
+        writer.Flush();*/
     }
 
     private static void TestSimpleClasses()
@@ -81,7 +88,6 @@ public class Tester
             pi != reader[2].ToDouble() ||
             info != reader[3].ToString())
             throw new Exception();
-
 
         /*var sw = Stopwatch.StartNew();
         using var basic = new BasicFormatter();
