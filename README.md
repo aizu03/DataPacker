@@ -29,16 +29,6 @@ using var writer = new SequenceWriter(ms, DataStructure.SequentialNamed);
 writer.Add("Description", "Alice is looking for Bob!");
 ```
 
-Sequential data is saved like this:
-```C#
-[len, data, len, data, len, data...]
-```
-
-If the structure is named:
-```C#
-[len name, name, len data, data, len name, name, len data, data]
-```
-
 Reading:
 ```C#
 using var reader = new SequenceReader(ms);
@@ -86,14 +76,6 @@ writer.Add("New Data 3!");
 writer.Flush();
 ```
 
-The indexed structure looks like this:
-```C#
-[data, data, data, .. book]
-```
-named:
-```C#
-[name, data, name, data, name, data, .. book]
-```
 ## Using the CompactFormatter
 
 If you want to serialize an object:
@@ -130,7 +112,6 @@ var data = CompactFormatter.Deserialize<SomeClass>(bytes);
 * ~~Indexed sequence~~
 * ~~Read ranges~~
 * ~~Simple serializer~~
-* Compressed formatter
 
 
 ## Contributing
