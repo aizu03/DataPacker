@@ -33,9 +33,9 @@ Reading:
 ```C#
 using var reader = new SequenceReader(ms);
 reader.Read();
-var str = reader.Entries[0].ToString();
-var num = reader.Entries[1].ToInt32();
-var pi = reader.Entries[2].ToDouble();
+var str = reader[0].ToString();
+var num = reader[1].ToInt32();
+var pi = reader[2].ToDouble();
 ```
 
 ## Indexed SequenceWriter/SequenceReader
@@ -56,7 +56,7 @@ You can choose what to read:
 ```C#
 using var reader = new SequenceReader(ms, DataStructure.Indexed);
 reader.ReadOne(1); // read only index 1
-var helloWorld = reader.Entries[0].ToString();
+var helloWorld = reader[0].ToString();
 ```
 Ranges:
 ```C#
@@ -84,6 +84,7 @@ If you want to serialize an object:
 var list = new List<string>(); // some object
 list.Add("Hello");
 list.Add("World!");
+
 var bytes = CompactFormatter.Serialize(list);
 // do stuff..
 var list = CompactFormatter.Deserialize<List<string>>(bytes);
@@ -102,8 +103,7 @@ writer.Flush();
 Get the object:
 ```C#
 using var reader = new SequenceReader(ms, DataStructure.SequentialNamed, autoRead: true);
-var bytes = reader["Data"];
-var data = CompactFormatter.Deserialize<SomeClass>(bytes);
+var data = reader["Data"].Deserialize<SomeClass>();
 ```
 
 ## TODO
