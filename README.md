@@ -84,6 +84,7 @@ If you want to serialize an object:
 var list = new List<string>(); // some object
 list.Add("Hello");
 list.Add("World!");
+
 var bytes = CompactFormatter.Serialize(list);
 // do stuff..
 var list = CompactFormatter.Deserialize<List<string>>(bytes);
@@ -102,8 +103,7 @@ writer.Flush();
 Get the object:
 ```C#
 using var reader = new SequenceReader(ms, DataStructure.SequentialNamed, autoRead: true);
-var bytes = reader["Data"];
-var data = CompactFormatter.Deserialize<SomeClass>(bytes);
+var data = reader["Data"].Deserialize<SomeClass>();
 ```
 
 ## TODO
