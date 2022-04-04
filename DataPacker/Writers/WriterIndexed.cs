@@ -39,10 +39,9 @@ namespace DataPacker.Writers
 
             if (named)
             {
-                foreach (var pair in objectsNamed)
+                foreach (var (key, obj) in objectsNamed)
                 {
-                    var name = Generate(pair.Key, encoding);
-                    var obj = pair.Value;
+                    var name = Generate(key, encoding);
 
                     // Write name and data
                     stream.Write(BitConverter.GetBytes(name.Length));
