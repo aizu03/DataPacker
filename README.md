@@ -56,7 +56,7 @@ You can choose what to read:
 ```C#
 using var reader = new SequenceReader(ms, DataStructure.Indexed);
 reader.ReadOne(1); // read only index 1
-var helloWorld = reader.Entries[0].ToString();
+var helloWorld = reader[0].ToString();
 ```
 Ranges:
 ```C#
