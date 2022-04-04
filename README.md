@@ -33,9 +33,9 @@ Reading:
 ```C#
 using var reader = new SequenceReader(ms);
 reader.Read();
-var str = reader.Entries[0].ToString();
-var num = reader.Entries[1].ToInt32();
-var pi = reader.Entries[2].ToDouble();
+var str = reader[0].ToString();
+var num = reader[1].ToInt32();
+var pi = reader[2].ToDouble();
 ```
 
 ## Indexed SequenceWriter/SequenceReader
