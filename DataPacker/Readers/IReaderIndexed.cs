@@ -1,6 +1,6 @@
 ﻿namespace DataPacker.Readers
 {
-    public interface IReaderIndexed
+    internal interface IReaderIndexed
     {
         int Available();
         void Read(bool closeStream);

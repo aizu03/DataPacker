@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace DataPacker.Writers
 {
-    public abstract class BaseWriter : BaseData, IBaseWriter
+    internal abstract class BaseWriter : BaseData, IBaseWriter
     {
         protected internal readonly List<byte[]> objects = new();
         protected internal readonly Dictionary<string, byte[]> objectsNamed = new();
@@ -59,8 +59,7 @@ namespace DataPacker.Writers
             return bytes;
         }
 
-        public abstract void Flush(bool closeStream);
-
+        public abstract void Flush();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()

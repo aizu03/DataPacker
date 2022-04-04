@@ -5,9 +5,9 @@ using System.Text;
 
 namespace DataPacker.Readers
 {
-    public class ReaderSequentialNamed : BaseReader
+    internal class ReaderSequentialNamed : BaseReader
     {
-        public ReaderSequentialNamed(Stream stream, Encoding? stringEncoding = null) : base(stream, true, stringEncoding) { }
+        protected internal ReaderSequentialNamed(Stream stream, Encoding? stringEncoding = null) : base(stream, true, stringEncoding) { }
 
         public override void Dispose()
         {

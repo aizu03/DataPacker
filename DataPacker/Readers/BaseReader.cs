@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DataPacker.Readers
 {
-    public abstract class BaseReader : BaseData, IBaseReader
+    internal abstract class BaseReader : BaseData, IBaseReader
     {
         public List<Entry> Entries { get; } = new();
         public Dictionary<string, Entry> NamedEntries { get; }

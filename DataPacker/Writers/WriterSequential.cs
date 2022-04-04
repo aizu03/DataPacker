@@ -14,7 +14,7 @@ namespace DataPacker.Writers
             Clear();
         }
 
-        public override void Flush(bool closeStream)
+        public override void Flush()
         {
             foreach (var obj in objects)
             {
@@ -24,7 +24,6 @@ namespace DataPacker.Writers
             }
 
             Clear();
-            if (closeStream) stream.Close();
         }
     }
 }

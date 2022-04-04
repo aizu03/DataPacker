@@ -2,14 +2,13 @@
 
 namespace DataPacker.Writers
 {
-    public interface IBaseWriter : IDisposable
+    internal interface IBaseWriter : IDisposable
     {
         void Add(byte[] data);
         void Add(object data);
         void Add(string name, byte[] data);
         void Add(string name, object data);
         int Size();
-        void Flush(bool closeStream);
         void Clear();
     }
 }

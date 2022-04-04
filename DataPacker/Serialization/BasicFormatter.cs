@@ -45,7 +45,7 @@ namespace DataPacker.Serialization
 
         /// <summary>
         ///
-        /// The class is converted into a basic <see cref="SequenceWriter"/>
+        /// Every object is converted into a basic <see cref="SequenceWriter"/>
         /// Each entry in the sequence represents the field value as a byte[]
         ///
         /// Field is null:
@@ -62,10 +62,6 @@ namespace DataPacker.Serialization
         /// 
         /// If it's a reference to an object currently serializing:
         /// byte[2, index of object]
-        ///
-        /// 0 = null
-        /// 1 = not null
-        /// 2 = reference
         /// 
         /// </summary>
         private byte[] ClassToBytes(object clazz)
@@ -143,7 +139,8 @@ namespace DataPacker.Serialization
                 writer.Add(otherBytes);
             }
 
-            writer.Flush(true);
+            writer.Flush();
+            writer.stream.Close();
             return ms.ToArray();
         }
 
@@ -167,37 +164,67 @@ namespace DataPacker.Serialization
             using var ms = new MemoryStream();
             // field is not null
             // byte[1, ...]
-            ms.WriteByte(1); 
-
-            using var arrayWriter = new WriterSequential(ms, stringEncoding);
+            ms.WriteByte(1);
 
             // Get array type
+            using var arrayWriter = new WriterSequential(ms, stringEncoding);
             var baseType = type.GetElementType();
-            var isBasePrimitiveOrString = baseType.IsPrimitive || baseType == typeof(string);
-            foreach (var arr in array)
+   
+            if (baseType.IsArray)
             {
-                if (arr == null)
+                foreach (var arrObj in array)
                 {
-                    arrayWriter.Add((byte)0); // entry is null
-                    arrayWriter.Add((byte)0); // zero data to keep alignment
-                    continue;
+                    if (arrObj == null)
+                    {
+                        arrayWriter.Add((byte)0); // entry is null
+                        arrayWriter.Add((byte)0); // zero data to keep alignment
+                        continue;
+                    }
+
+                    // Write array
+                    arrayWriter.Add((byte)1); // entry is not null   
+                    arrayWriter.Add(ArrayToBytes((Array)arrObj, baseType));
                 }
-
-                arrayWriter.Add((byte)1); // entry is not null   
-
-                // Check if it's another array and recursive call add it
-                if (arr.GetType().IsArray)
+            }
+            else
+            {
+                if (baseType.IsPrimitive || baseType == typeof(string))
                 {
-                    arrayWriter.Add(ArrayToBytes((Array)arr, baseType));
-                    continue;
-                }
+                    foreach (var arrObj in array)
+                    {
+                        if (arrObj == null)
+                        {
+                            arrayWriter.Add((byte)0); // entry is null
+                            arrayWriter.Add((byte)0); // zero data to keep alignment
+                            continue;
+                        }
 
-                // Write primitive, string or object
-                arrayWriter.Add(isBasePrimitiveOrString ? Generate(arr, stringEncoding) : ClassToBytes(arr));
+                        // Write primitive or string
+                        arrayWriter.Add((byte)1); // entry is not null   
+                        arrayWriter.Add(Generate(arrObj, stringEncoding));
+                    }
+                }
+                else
+                {
+                    foreach (var arrObj in array)
+                    {
+                        if (arrObj == null)
+                        {
+                            arrayWriter.Add((byte)0); // entry is null
+                            arrayWriter.Add((byte)0); // zero data to keep alignment
+                            continue;
+                        }
+
+                        // Write object
+                        arrayWriter.Add((byte)1); // entry is not null   
+                        arrayWriter.Add(ClassToBytes(arrObj));
+                    }
+                }
             }
 
             // Write the sequence [is null, data]
-            arrayWriter.Flush(true);
+            arrayWriter.Flush();
+            arrayWriter.stream.Close();
 
             return ms.ToArray();
         }
@@ -277,9 +304,8 @@ namespace DataPacker.Serialization
         private object ArrayFromBytes(ref byte[] arrayBytes, Type type)
         {
             var baseType = type.GetElementType();
-            var isBasePrimitiveOrString = baseType.IsPrimitive || baseType == typeof(string);
             var url = baseType.FullName!;
-  
+
             // Read array entries [is null, data]
             using var ms2 = new MemoryStream(arrayBytes);
             using var sequenceReader = new ReaderSequential(ms2);
@@ -290,10 +316,26 @@ namespace DataPacker.Serialization
             var arr = Array.CreateInstance(baseType, arraySize);
 
             // Fill array
-            var index = 0;
-            for (var j = 0; j < sequenceReader.Entries.Count; j++)
+            if (baseType.IsArray)
+                FillArrayArray(baseType, sequenceReader.Entries, arr);
+            else
             {
-                var entryBytes = sequenceReader.Entries[j].data;
+                if (baseType.IsPrimitive || baseType == typeof(string))
+                    FillArrayPrimitive(baseType, sequenceReader.Entries, arr);
+                else
+                    FillArrayObject(ref url, sequenceReader.Entries, arr);
+            }
+
+            return arr;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void FillArrayArray(Type baseType, List<Entry> entries, Array arr)
+        {
+            var index = 0;
+            for (var j = 0; j < entries.Count; j++)
+            {
+                var entryBytes = entries[j].data;
 
                 // Skip null entries
                 if ((j & 1) == 0)
@@ -307,29 +349,66 @@ namespace DataPacker.Serialization
                     continue;
                 }
 
-                // Check if entry of the array is another array
-                if (baseType.IsArray)
-                {
-                    // [0/1, array bytes]
-                    if (entryBytes[0] == 0) continue; // the array is null
+                // [0/1, array bytes]
+                if (entryBytes[0] == 0) continue; // the array is null
 
-                    // Remove null indicator
-                    var nullRemoved = new byte[entryBytes.Length - 1];
-                    Buffer.BlockCopy(entryBytes, 1, nullRemoved, 0, entryBytes.Length - 1);
+                // Remove null indicator
+                var nullRemoved = new byte[entryBytes.Length - 1];
+                Buffer.BlockCopy(entryBytes, 1, nullRemoved, 0, entryBytes.Length - 1);
 
-                    // Convert [array bytes] with type
-                    arr.SetValue(ArrayFromBytes(ref nullRemoved, baseType), index++);
-                }
-                else
-                {
-                    // Convert [entry bytes] to primitive, string or class object
-                    arr.SetValue(isBasePrimitiveOrString ?
-                        Cast2(baseType, ref entryBytes, stringEncoding) :
-                        ClassFromBytes(ref url, ref entryBytes), index++);
-                }
+                // Convert [array bytes] with type
+                arr.SetValue(ArrayFromBytes(ref nullRemoved, baseType), index++);
             }
+        }
 
-            return arr;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void FillArrayPrimitive(Type baseType, List<Entry> entries, Array arr)
+        {
+            var index = 0;
+            for (var j = 0; j < entries.Count; j++)
+            {
+                var entryBytes = entries[j].data;
+
+                // Skip null entries
+                if ((j & 1) == 0)
+                {
+                    if (entryBytes[0] == 0) // value is null
+                    {
+                        ++index;
+                        ++j;
+                    }
+
+                    continue;
+                }
+
+                // Convert [entry bytes] to primitive
+                arr.SetValue(Cast2(baseType, ref entryBytes, stringEncoding), index++);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void FillArrayObject(ref string url, List<Entry> entries, Array arr)
+        {
+            var index = 0;
+            for (var j = 0; j < entries.Count; j++)
+            {
+                var entryBytes = entries[j].data;
+
+                // Skip null entries
+                if ((j & 1) == 0)
+                {
+                    if (entryBytes[0] == 0) // value is null
+                    {
+                        ++index;
+                        ++j;
+                    }
+
+                    continue;
+                }
+
+                // Convert [entry bytes] class object
+                arr.SetValue(ClassFromBytes(ref url, ref entryBytes), index++);
+            }
         }
 
         #endregion

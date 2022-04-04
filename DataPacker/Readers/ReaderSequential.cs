@@ -6,7 +6,7 @@ namespace DataPacker.Readers
 {
     internal class ReaderSequential : BaseReader
     {
-        public ReaderSequential(Stream stream, Encoding? stringEncoding = null) : base(stream, false, stringEncoding) { }
+        protected internal ReaderSequential(Stream stream, Encoding? stringEncoding = null) : base(stream, false, stringEncoding) { }
 
         public override void Dispose()
         {

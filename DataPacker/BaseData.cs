@@ -2,11 +2,11 @@
 
 namespace DataPacker
 {
-    public abstract class BaseData
+    internal abstract class BaseData
     {
-        protected readonly Stream stream;
+        protected internal readonly Stream stream;
 
-        protected BaseData(Stream stream)
+        protected internal BaseData(Stream stream)
         {
             this.stream = stream;
         }

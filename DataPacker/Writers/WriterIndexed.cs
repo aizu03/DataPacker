@@ -12,7 +12,7 @@ namespace DataPacker.Writers
         private readonly ReaderIndexed? appendReader;
 
         // Not appending
-        public WriterIndexed(Stream stream, bool named, Encoding stringEncoding, ReaderIndexed? appendReader = null)
+        protected internal WriterIndexed(Stream stream, bool named, Encoding stringEncoding, ReaderIndexed? appendReader = null)
             : base(stream, named, stringEncoding)     
         {
             if (appendReader != null)     
@@ -24,7 +24,7 @@ namespace DataPacker.Writers
             Clear();
         }
 
-        public override void Flush(bool closeStream)
+        public override void Flush()
         {
             var offsets = new List<int>();
             if (appendReader != null)
@@ -73,7 +73,6 @@ namespace DataPacker.Writers
             stream.Write(BitConverter.GetBytes((long)bookBytesTotal));
 
             Clear();
-            if (closeStream) stream.Close();
         }
     }
 }

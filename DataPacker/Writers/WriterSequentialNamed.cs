@@ -5,16 +5,16 @@ using static DataPacker.ByteHelper;
 
 namespace DataPacker.Writers
 {
-    public class WriterSequentialNamed : BaseWriter
+    internal class WriterSequentialNamed : BaseWriter
     {
-        public WriterSequentialNamed(Stream stream, Encoding stringEncoding) : base(stream, true, stringEncoding) { }
+        protected internal WriterSequentialNamed(Stream stream, Encoding stringEncoding) : base(stream, true, stringEncoding) { }
 
         public override void Dispose()
         {
             Clear();
         }
 
-        public override void Flush(bool closeStream)
+        public override void Flush()
         {
             foreach (var (key, obj) in objectsNamed)
             {
@@ -30,7 +30,6 @@ namespace DataPacker.Writers
             }
 
             Clear();
-            if (closeStream) stream.Close();
         }
     }
 }

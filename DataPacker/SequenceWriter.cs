@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using DataPacker.Writers;
 namespace DataPacker
@@ -34,12 +35,16 @@ namespace DataPacker
         }
 
         public void Dispose() => writer.Dispose();
+        public void Clear() => writer.Clear();
         public int Size() => writer.Size();
         public void Add(byte[] data) => writer.Add(data);
         public void Add(object data) => writer.Add(data);
         public void Add(string name, byte[] data) => writer.Add(name, data);
         public void Add(string name, object data) => writer.Add(name, data);
-        public void Flush(bool closeStream = true) => writer.Flush(closeStream);
-        public void Clear() => writer.Clear();
+        public void Flush(bool closeStream = true)
+        {
+            writer.Flush();
+            if (closeStream) writer.stream.Close();
+        }
     }
 }

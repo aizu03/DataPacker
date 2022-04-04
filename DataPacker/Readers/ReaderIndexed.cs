@@ -10,7 +10,7 @@ namespace DataPacker.Readers
         protected internal readonly List<BookEntry> bookEntries = new();
         protected internal long bookLength;
 
-        public ReaderIndexed(Stream stream, bool named, Encoding? stringEncoding = null)
+        protected internal ReaderIndexed(Stream stream, bool named, Encoding? stringEncoding = null)
             : base(stream, named, stringEncoding) => ReadBook();
 
         public int Available() => bookEntries.Count;

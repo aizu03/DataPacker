@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataPacker.Readers
 {
-    public interface IBaseReader : IDisposable
+    internal interface IBaseReader : IDisposable
     {
         public List<Entry> Entries {  get; }
         public Dictionary<string, Entry> NamedEntries {  get; }
