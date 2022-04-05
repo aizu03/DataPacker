@@ -78,6 +78,8 @@ writer.Flush();
 
 ## Using the CompactFormatter
 
+Made for serializing classes/structs
+
 If you want to serialize an object:
 
 ```C#
