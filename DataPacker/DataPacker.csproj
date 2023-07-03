@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <BaseOutputPath>D:\My Final Apps</BaseOutputPath>
+    <BaseOutputPath></BaseOutputPath>
 	<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Authors>aizu03</Authors>
