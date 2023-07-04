@@ -8,28 +8,28 @@ namespace DataPacker
     {
         private readonly BaseWriter writer;
 
-        public SequenceWriter(Stream stream, DataStructure structure = DataStructure.Sequential, Encoding? stringEncoding = null, SequenceReader? appendReader = null)
+        public SequenceWriter(Stream stream, DataStructure structure = DataStructure.Sequential, Encoding? encoding = null, SequenceReader? appendReader = null)
         {
-            stringEncoding ??= Encoding.Unicode;
+            encoding ??= Encoding.Unicode;
             switch(structure)
             {
                 case DataStructure.Sequential:
 
-                    writer = new WriterSequential(stream, stringEncoding);
+                    writer = new WriterSequential(stream, encoding);
                     break;
 
                 case DataStructure.SequentialNamed:
 
-                    writer = new WriterSequentialNamed(stream, stringEncoding);
+                    writer = new WriterSequentialNamed(stream, encoding);
                     break;
 
                 case DataStructure.Indexed:
 
-                    writer = new WriterIndexed(stream, false, stringEncoding, appendReader?.readerIndexed);
+                    writer = new WriterIndexed(stream, false, encoding, appendReader?.readerIndexed);
                     break;
 
                 case DataStructure.IndexedNamed:
-                    writer = new WriterIndexed(stream, true, stringEncoding, appendReader?.readerIndexed);
+                    writer = new WriterIndexed(stream, true, encoding, appendReader?.readerIndexed);
                     break;
             }
         }

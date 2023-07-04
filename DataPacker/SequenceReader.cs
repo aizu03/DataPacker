@@ -12,29 +12,29 @@ namespace DataPacker
         internal ReaderIndexed? readerIndexed;
 
         public SequenceReader(Stream stream, DataStructure structure = DataStructure.Sequential, Encoding? 
-            stringEncoding = null, bool autoRead = false, bool closeStream = true)
+            encoding = null, bool autoRead = false, bool closeStream = true)
         {
             switch (structure)
             {
                 case DataStructure.Sequential:
 
-                    reader = new ReaderSequential(stream, stringEncoding);
+                    reader = new ReaderSequential(stream, encoding);
                     break;
 
                 case DataStructure.SequentialNamed:
 
-                    reader = new ReaderSequentialNamed(stream, stringEncoding);
+                    reader = new ReaderSequentialNamed(stream, encoding);
                     break;
 
                 case DataStructure.Indexed:
           
-                    readerIndexed = new ReaderIndexed(stream, false, stringEncoding);
+                    readerIndexed = new ReaderIndexed(stream, false, encoding);
                     reader = readerIndexed;
                     break;
 
                 case DataStructure.IndexedNamed:
 
-                    readerIndexed = new ReaderIndexed(stream, true, stringEncoding);
+                    readerIndexed = new ReaderIndexed(stream, true, encoding);
                     reader = readerIndexed;
                     break;
 
