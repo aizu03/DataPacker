@@ -253,7 +253,7 @@ namespace DataPacker.Serialization
             if (classBytes.Length == 0) return clazz;
 
             using var stream = new MemoryStream(classBytes);
-            using var sequenceFields = new ReaderSequential(stream);
+            using var sequenceFields = new ReaderSequential(stream, stringEncoding);
             sequenceFields.Read(true);
 
             for (var i = 0; i < fields.Length; i++)
@@ -272,7 +272,7 @@ namespace DataPacker.Serialization
                 if (fieldType.IsPrimitive || fieldType == typeof(string))
                 {
                     // Parse bytes into primitive field type
-                    field.SetValue(clazz, Cast2(fieldType, ref fieldBytes, Encoding.Unicode));
+                    field.SetValue(clazz, Cast2(fieldType, ref fieldBytes, stringEncoding));
                     continue;
                 }
 
